@@ -10,6 +10,7 @@ folder_path = "data/Data_SubmitRecord"
 file_names = os.listdir(folder_path)
 
 
+# 检查学生id和题目id是否存在不匹配的情况
 def check_matching():
     # 初始化不匹配的数据列表
     unmatched_data1 = []
@@ -40,6 +41,7 @@ def check_matching():
     unmatched_df.to_csv("unmatched_data2.csv", index=False)
 
 
+# 整合三个表，这里面有去除重复值
 def integrate():
     index = 0
     # 循环遍历文件夹下的每个文件
@@ -49,16 +51,20 @@ def integrate():
         # 加载答题日志表
         answer_log_df = pd.read_csv(file_path)
         index += 1
+        # 去除 answer_log_df 中的重复 student_ID
+        student_info_df1 = student_info_df.drop_duplicates(subset="student_ID")
+        question_info_df1 = question_info_df.drop_duplicates(subset="title_ID")
         # 将答题日志表与学生信息表和题目信息表进行左连接
         merged_df = pd.merge(
-            answer_log_df, student_info_df, on="student_ID", how="left"
+            answer_log_df, student_info_df1, on="student_ID", how="left"
         )
-        merged_df = pd.merge(merged_df, question_info_df, on="title_ID", how="left")
+        merged_df = pd.merge(merged_df, question_info_df1, on="title_ID", how="left")
         integrate_df = pd.DataFrame(merged_df)
         file_name = f"data/integration/integrated_data{index}.csv"
         integrate_df.to_csv(file_name, index=False)
 
 
+# 找到每个表中的班级异常情况
 def find_abnormal():
     abnormal_data = []
     index = 0
@@ -81,4 +87,23 @@ def find_abnormal():
     # print(abnormal_data)
 
 
-find_abnormal()
+# 整合题目表中的知识点
+def question_merge():
+    # 将大知识点和子知识点合并成一个知识点字符串
+    question_info_df["knowledge"] = (
+        question_info_df["knowledge"] + "," + question_info_df["sub_knowledge"]
+    )
+    question_info_df["knowledge"] = question_info_df["knowledge"].apply(lambda x: [x])
+    # 将题目ID设置为唯一索引并合并重复题目ID的行并合并知识点
+    question_info_df.set_index("title_ID", inplace=True)
+    df_merged = (
+        question_info_df.groupby(level=0)
+        .agg({"score": "first", "knowledge": "sum"})
+        .reset_index()
+    )
+    # 保存整合结果为 CSV 文件
+    df_merged.to_csv("data/temporary/question_merged_data.csv", index=False)
+
+
+# integrate()
+question_merge()
