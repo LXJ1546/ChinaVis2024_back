@@ -147,6 +147,33 @@ def find_abnormal():
     # abnormal_data.to_csv("data/abnormal_data.csv", index=False)
     # print(abnormal_data)
 
+def find_samesut():
+    columns_arrays = []
+    #读取文件夹中的所有文件
+    for filename in os.listdir(folder_path):
+        if filename.endswith(".csv"):  # 确保只读取CSV文件
+            file_path = os.path.join(folder_path, filename)
+            df = pd.read_csv(file_path)
+            # 假设你需要提取的列名为 'column_name'
+            column_array = df['student_ID'].values
+            column_array0 = list(set(column_array))
+            columns_arrays.append(column_array0)
+    print(columns_arrays)
+    # 存储所有元素的列表
+    all_elements = []
+    # 存储重复的元素的列表
+    duplicate_elements = []
+    for array in columns_arrays:
+        for element in array:
+            # 如果元素已经在 all_elements 中，且不在 duplicate_elements 中，说明它是重复元素
+            if element in all_elements and element not in duplicate_elements:
+                duplicate_elements.append(element)
+            else:
+                all_elements.append(element)
+
+    # 输出重复的元素
+    print("重复元素：", duplicate_elements)
+    print("length:",len(duplicate_elements))    
 
 # 整合题目表中的知识点
 def question_merge():
