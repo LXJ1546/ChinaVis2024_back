@@ -945,7 +945,9 @@ def student_merge_feature():
             for date in date_str:
                 if date not in student_dict[student_id]:
                     student_dict[student_id][date] = []
-                student_dict[student_id][date] = info
+                # student_dict[student_id][date] = [info]
+                # 不考虑学生基本信息
+                student_dict[student_id][date] = []
         # if count == 1:
         #     print(len(student_dict))
         #     break
@@ -1311,16 +1313,16 @@ def try_cluster():
     # # 使用PCA进行降维
     # pca = PCA(n_components=2)
     # reduced_features = pca.fit_transform(features)
+    # 使用KMeans进行聚类
+    kmeans = KMeans(n_clusters=4, random_state=0).fit(features)
+    # 获取聚类标签
+    labels = kmeans.labels_
     # 使用t-SNE进行降维
     tsne = TSNE(n_components=2, random_state=0)
     reduced_features = tsne.fit_transform(features)
-    # 使用KMeans进行聚类
-    kmeans = KMeans(n_clusters=3, random_state=0).fit(reduced_features)
-    # 获取聚类标签
-    labels = kmeans.labels_
     # 绘制散点图
     plt.scatter(
-        reduced_features[:, 0], reduced_features[:, 1], c=labels, s=50, cmap="viridis"
+        reduced_features[:, 0], reduced_features[:, 1], c=labels, s=20, cmap="viridis"
     )
     # 显示图像
     plt.savefig("my_figure.png")
@@ -1371,5 +1373,5 @@ def student_to_tag():
 # min_max_feature()
 # tranfer_to_matrix()
 # standard_feature()
-# try_cluster()
-student_to_tag()
+try_cluster()
+# student_to_tag()
