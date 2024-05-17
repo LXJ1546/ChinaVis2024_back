@@ -147,15 +147,16 @@ def find_abnormal():
     # abnormal_data.to_csv("data/abnormal_data.csv", index=False)
     # print(abnormal_data)
 
+
 def find_samesut():
     columns_arrays = []
-    #读取文件夹中的所有文件
+    # 读取文件夹中的所有文件
     for filename in os.listdir(folder_path):
         if filename.endswith(".csv"):  # 确保只读取CSV文件
             file_path = os.path.join(folder_path, filename)
             df = pd.read_csv(file_path)
             # 假设你需要提取的列名为 'column_name'
-            column_array = df['student_ID'].values
+            column_array = df["student_ID"].values
             column_array0 = list(set(column_array))
             columns_arrays.append(column_array0)
     print(columns_arrays)
@@ -173,7 +174,8 @@ def find_samesut():
 
     # 输出重复的元素
     print("重复元素：", duplicate_elements)
-    print("length:",len(duplicate_elements))    
+    print("length:", len(duplicate_elements))
+
 
 # 整合题目表中的知识点
 def question_merge():
@@ -623,7 +625,7 @@ def ten_days_total_submit():
         monthly_counts = {}
         # 拼接文件的完整路径
         file_path = os.path.join(folder_path, file_name)
-        # 从JSON文件中读取formatted_submission_counts数据
+        # 从JSON文件中读取数据
         with open(file_path, "r") as f:
             student_submit_count = json.load(f)
         # 遍历每个学生的答题日志
@@ -631,13 +633,26 @@ def ten_days_total_submit():
             # 如果该学生的ID不在字典中，则将其添加到字典中
             if student_id not in monthly_counts:
                 monthly_counts[student_id] = {}
-
             for date_str, question_logs in daily_logs.items():
                 # 获取月份
                 month = date_str[:7]  # 取年份和月份部分
                 # 如果该月份不在学生字典中，则将其添加到字典中
                 if month not in monthly_counts[student_id]:
                     monthly_counts[student_id][month] = [0, 0, 0]
+                # # 下面是按天分数据
+                # if month not in monthly_counts[student_id]:
+                #     if month == "2023-08":
+                #         continue
+                #     if month == "2023-09":
+                #         monthly_counts[student_id][month] = [0] * 30
+                #     elif month == "2023-10":
+                #         monthly_counts[student_id][month] = [0] * 31
+                #     elif month == "2023-11":
+                #         monthly_counts[student_id][month] = [0] * 30
+                #     elif month == "2023-12":
+                #         monthly_counts[student_id][month] = [0] * 31
+                #     else:
+                #         monthly_counts[student_id][month] = [0] * 25
                 adate = datetime.datetime.strptime(date_str, "%Y-%m-%d")
                 # 判断旬份
                 if adate.day <= 10:
@@ -646,11 +661,15 @@ def ten_days_total_submit():
                     monthly_counts[student_id][month][1] += sum(question_logs.values())
                 else:
                     monthly_counts[student_id][month][2] += sum(question_logs.values())
+                # print(adate.day)
+                # monthly_counts[student_id][month][adate.day - 1] = sum(
+                #     question_logs.values()
+                # )
 
         # 保存为JSON文件
         save_to_json(
             monthly_counts,
-            f"data/temporary/t-d-t-s/ten_days_total_submit{index}.json",
+            f"data/temporary/t-d-t-s/ten-days_total_submit{index}.json",
         )
 
 
@@ -712,7 +731,7 @@ def ten_days_max_submit():
         )
 
 
-# 每个学生每个月的上、中、下旬答题数目
+# 每个学生每个月的上、中、下旬答题数目（升级为计算每月的答题数量，不分上中下）
 def month_answer_question_number():
     # 指定文件夹路径
     folder_path = "data/temporary/s-s-c"
@@ -733,7 +752,7 @@ def month_answer_question_number():
         monthly_counts = {}
         # 拼接文件的完整路径
         file_path = os.path.join(folder_path, file_name)
-        # 从JSON文件中读取formatted_submission_counts数据
+        # 从JSON文件中读取数据
         with open(file_path, "r") as f:
             student_submit_count = json.load(f)
         # 遍历每个学生的答题日志
@@ -748,28 +767,66 @@ def month_answer_question_number():
                 month = date_str[:7]  # 取年份和月份部分
                 # 如果该月份不在学生字典中，则将其添加到字典中
                 if month not in monthly_counts[student_id]:
-                    monthly_counts[student_id][month] = [0, 0, 0]
+                    monthly_counts[student_id][month] = 0
+                # # 分天数的情况
+                # if month not in monthly_counts[student_id]:
+                #     if month == "2023-08":
+                #         continue
+                #     if month == "2023-09":
+                #         monthly_counts[student_id][month] = [0] * 30
+                #     elif month == "2023-10":
+                #         monthly_counts[student_id][month] = [0] * 31
+                #     elif month == "2023-11":
+                #         monthly_counts[student_id][month] = [0] * 30
+                #     elif month == "2023-12":
+                #         monthly_counts[student_id][month] = [0] * 31
+                #     else:
+                #         monthly_counts[student_id][month] = [0] * 25
+
+                # if month not in monthly_list[student_id]:
+                #     if month == "2023-09":
+                #         monthly_list[student_id][month] = [[] for _ in range(30)]
+                #     elif month == "2023-10":
+                #         monthly_list[student_id][month] = [[] for _ in range(31)]
+                #     elif month == "2023-11":
+                #         monthly_list[student_id][month] = [[] for _ in range(30)]
+                #     elif month == "2023-12":
+                #         monthly_list[student_id][month] = [[] for _ in range(31)]
+                #     else:
+                #         monthly_list[student_id][month] = [[] for _ in range(25)]
                 if month not in monthly_list[student_id]:
-                    monthly_list[student_id][month] = [[], [], []]
-                adate = datetime.datetime.strptime(date_str, "%Y-%m-%d")
-                if adate.day <= 10:
-                    for key in question_logs.keys():
-                        monthly_list[student_id][month][0].append(key)
-                    monthly_counts[student_id][month][0] = len(
-                        set(monthly_list[student_id][month][0])
-                    )
-                elif adate.day <= 20:
-                    for key in question_logs.keys():
-                        monthly_list[student_id][month][1].append(key)
-                    monthly_counts[student_id][month][1] = len(
-                        set(monthly_list[student_id][month][1])
-                    )
-                else:
-                    for key in question_logs.keys():
-                        monthly_list[student_id][month][2].append(key)
-                    monthly_counts[student_id][month][2] = len(
-                        set(monthly_list[student_id][month][2])
-                    )
+                    monthly_list[student_id][month] = []
+                # adate = datetime.datetime.strptime(date_str, "%Y-%m-%d")
+                for key in question_logs.keys():
+                    monthly_list[student_id][month].append(key)
+                monthly_counts[student_id][month] = len(
+                    set(monthly_list[student_id][month])
+                )
+                # if adate.day <= 10:
+                #     for key in question_logs.keys():
+                #         monthly_list[student_id][month][0].append(key)
+                #     monthly_counts[student_id][month][0] = len(
+                #         set(monthly_list[student_id][month][0])
+                #     )
+                # elif adate.day <= 20:
+                #     for key in question_logs.keys():
+                #         monthly_list[student_id][month][1].append(key)
+                #     monthly_counts[student_id][month][1] = len(
+                #         set(monthly_list[student_id][month][1])
+                #     )
+                # else:
+                #     for key in question_logs.keys():
+                #         monthly_list[student_id][month][2].append(key)
+                #     monthly_counts[student_id][month][2] = len(
+                #         set(monthly_list[student_id][month][2])
+                #     )
+                # for key in question_logs.keys():
+                #     monthly_list[student_id][month][adate.day - 1].append(key)
+                # if adate == "2023-10-03":
+                #     print(monthly_list[student_id][month][adate.day - 1])
+                # monthly_counts[student_id][month][adate.day - 1] = len(
+                #     set(monthly_list[student_id][month][adate.day - 1])
+                # )
         # 保存为JSON文件
         save_to_json(
             monthly_counts,
@@ -814,35 +871,80 @@ def month_question_state_count():
                     timestamp = datetime.datetime.fromtimestamp(answer[0])
                     # 提取年月信息
                     year_month = timestamp.strftime("%Y-%m")
+                    # adate = datetime.datetime.fromtimestamp(answer[0])
                     # 如果该月份不在学生字典中，则将其添加到字典中
                     if year_month not in monthly_counts[student_id]:
                         monthly_counts[student_id][year_month] = [0, 0, 0]
+                    # if year_month not in monthly_counts[student_id]:
+                    #     if year_month == "2023-08":
+                    #         continue
+                    #     if year_month == "2023-09":
+                    #         monthly_counts[student_id][year_month] = [
+                    #             [0, 0, 0] for _ in range(30)
+                    #         ]
+                    #     elif year_month == "2023-10":
+                    #         monthly_counts[student_id][year_month] = [
+                    #             [0, 0, 0] for _ in range(31)
+                    #         ]
+                    #     elif year_month == "2023-11":
+                    #         monthly_counts[student_id][year_month] = [
+                    #             [0, 0, 0] for _ in range(30)
+                    #         ]
+                    #     elif year_month == "2023-12":
+                    #         monthly_counts[student_id][year_month] = [
+                    #             [0, 0, 0] for _ in range(31)
+                    #         ]
+                    #     else:
+                    #         monthly_counts[student_id][year_month] = [
+                    #             [0, 0, 0] for _ in range(25)
+                    #         ]
                     if answer[2] == "Absolutely_Correct":
                         monthly_counts[student_id][year_month][0] += 1
                     elif answer[2] == "Partially_Correct":
                         monthly_counts[student_id][year_month][1] += 1
                     else:
                         monthly_counts[student_id][year_month][2] += 1
+                    # if answer[2] == "Absolutely_Correct":
+                    #     monthly_counts[student_id][year_month][adate.day - 1][0] += 1
+                    # elif answer[2] == "Partially_Correct":
+                    #     monthly_counts[student_id][year_month][adate.day - 1][1] += 1
+                    # else:
+                    #     monthly_counts[student_id][year_month][adate.day - 1][2] += 1
 
         # 遍历monthly_counts记录
         for student_id, month_list in monthly_counts.items():
-            print(month_list)
             if student_id not in correct_prppotion:
                 correct_prppotion[student_id] = {}
             # 遍历每道题目的答题记录
             for year_month, status_list in month_list.items():
-                print(status_list)
                 if year_month not in correct_prppotion[student_id]:
                     correct_prppotion[student_id][year_month] = 0
+                # if year_month not in correct_prppotion[student_id]:
+                #     if year_month == "2023-09":
+                #         correct_prppotion[student_id][year_month] = [0] * 30
+                #     elif year_month == "2023-10":
+                #         correct_prppotion[student_id][year_month] = [0] * 31
+                #     elif year_month == "2023-11":
+                #         correct_prppotion[student_id][year_month] = [0] * 30
+                #     elif year_month == "2023-12":
+                #         correct_prppotion[student_id][year_month] = [0] * 31
+                #     else:
+                #         correct_prppotion[student_id][year_month] = [0] * 25
+                # for aindex, alist in enumerate(status_list):
+                #     propotion = 0
+                #     if sum(alist) != 0:
+                #         propotion = (alist[0] + alist[1]) / sum(alist)
+                #     correct_prppotion[student_id][year_month][aindex] = propotion
                 propotion = (status_list[0] + status_list[1]) / sum(status_list)
                 correct_prppotion[student_id][year_month] = propotion
         # 保存为JSON文件
         save_to_json(
             correct_prppotion,
-            f"data/temporary/m-q-s-c/month_question_state_count{index}.json",
+            f"data/temporary/n-q-s-c/month_question_state_count{index}.json",
         )
 
 
+# 获取学生每个月使用的编程语言数量，貌似没多大区别，都是使用5个编程语言（升级为计算使用的编程语言数）
 def month_prefer_language():
     # 指定文件夹路径
     folder_path = "data/temporary/s-t-g"
@@ -891,38 +993,100 @@ def month_prefer_language():
                         monthly_counts[student_id][year_month][3] += 1
                     else:
                         monthly_counts[student_id][year_month][4] += 1
-        # final_result = {}
-        # for student_id, month_list in monthly_counts.items():
-        #     # 如果该学生的ID不在字典中，则将其添加到字典中
-        #     if student_id not in final_result:
-        #         final_result[student_id] = {}
-        #     # 遍历每道题目的答题记录
-        #     for month_id, method_count in month_list.items():
-        #         # 如果该月份不在学生字典中，则将其添加到字典中
-        #         if month_id not in final_result[student_id]:
-        #             final_result[student_id][month_id] = ""
-        #         # 找到 monthly_counts[student_id][year_month] 中的最大值及其索引
-        #         max_value = max(method_count)
-        #         max_index = method_count.index(max_value)
-        #         if max_index == 0:
-        #             final_result[student_id][month_id] = "Method_5Q4KoXthUuYz3bvrTDFm"
-        #         elif max_index == 1:
-        #             final_result[student_id][month_id] = "Method_BXr9AIsPQhwNvyGdZL57"
-        #         elif max_index == 2:
-        #             final_result[student_id][month_id] = "Method_Cj9Ya2R7fZd6xs1q5mNQ"
-        #         elif max_index == 3:
-        #             final_result[student_id][month_id] = "Method_gj1NLb4Jn7URf9K2kQPd"
-        #         else:
-        #             final_result[student_id][month_id] = "Method_m8vwGkEZc3TSW2xqYUoR"
+        final_result = {}
+        for student_id, month_list in monthly_counts.items():
+            # 如果该学生的ID不在字典中，则将其添加到字典中
+            if student_id not in final_result:
+                final_result[student_id] = {}
+            # 遍历每道题目的答题记录
+            for month_id, method_count in month_list.items():
+                # 如果该月份不在学生字典中，则将其添加到字典中
+                if month_id not in final_result[student_id]:
+                    final_result[student_id][month_id] = 0
+                final_result[student_id][month_id] = sum(
+                    1 for element in method_count if element != 0
+                )
+                # # 找到 monthly_counts[student_id][year_month] 中的最大值及其索引
+                # max_value = max(method_count)
+                # max_index = method_count.index(max_value)
+                # if max_index == 0:
+                #     final_result[student_id][month_id] = "Method_5Q4KoXthUuYz3bvrTDFm"
+                # elif max_index == 1:
+                #     final_result[student_id][month_id] = "Method_BXr9AIsPQhwNvyGdZL57"
+                # elif max_index == 2:
+                #     final_result[student_id][month_id] = "Method_Cj9Ya2R7fZd6xs1q5mNQ"
+                # elif max_index == 3:
+                #     final_result[student_id][month_id] = "Method_gj1NLb4Jn7URf9K2kQPd"
+                # else:
+                #     final_result[student_id][month_id] = "Method_m8vwGkEZc3TSW2xqYUoR"
 
-        # # 保存为JSON文件
+        # 保存为JSON文件
+        save_to_json(
+            final_result,
+            f"data/temporary/m-p-l/month_language_number{index}.json",
+        )
         # save_to_json(
-        #     final_result,
-        #     f"data/temporary/m-p-l/month_prefer_language{index}.json",
+        #     monthly_counts,
+        #     f"data/temporary/m-p-l/month_use_language_count{index}.json",
         # )
+
+
+# 提取每个学生的工作日和休息日做题情况
+def workday_and_day_off():
+    # 指定文件夹路径
+    folder_path = "data/temporary/s-s-c"
+    # 获取文件夹下所有文件的文件名
+    file_names = os.listdir(folder_path)
+    index = 0
+    # 定义正则表达式模式，匹配文件名中的数字部分
+    pattern = r"\d+"
+    # 循环遍历文件夹下的每个文件
+    for file_name in file_names:
+        # 使用正则表达式进行匹配
+        match = re.search(pattern, file_name)
+        if match:
+            # 如果找到匹配的数字，则提取并打印
+            index = match.group()
+        # 创建一个空字典，用于存储每个学生每个月的工作日和休息日做题情况
+        monthly_counts = {}
+        # 拼接文件的完整路径
+        file_path = os.path.join(folder_path, file_name)
+        # 从JSON文件中读取数据
+        with open(file_path, "r") as f:
+            student_submit_count = json.load(f)
+        # 遍历每个学生的答题日志
+        for student_id, daily_logs in student_submit_count.items():
+            # 如果该学生的ID不在字典中，则将其添加到字典中
+            if student_id not in monthly_counts:
+                monthly_counts[student_id] = {}
+            for date_str, question_logs in daily_logs.items():
+                # 获取月份
+                month = date_str[:7]
+                # 解析字符串为日期对象
+                date_obj = datetime.datetime.strptime(date_str, "%Y-%m-%d")
+                # 定义中秋国庆的日期对象
+                start_date1 = datetime.datetime.strptime("2023-09-29", "%Y-%m-%d")
+                end_date1 = datetime.datetime.strptime("2023-10-06", "%Y-%m-%d")
+                # 检查日期是否在10月1日到10月7日之间（包括边界）
+                is_in_range1 = start_date1 <= date_obj <= end_date1
+                # 定义元旦的日期对象
+                start_date2 = datetime.datetime.strptime("2023-12-30", "%Y-%m-%d")
+                end_date2 = datetime.datetime.strptime("2023-01-01", "%Y-%m-%d")
+                # 检查日期是否在10月1日到10月7日之间（包括边界）
+                is_in_range2 = start_date2 <= date_obj <= end_date2
+                # 判断日期是工作日还是休息日
+                is_weekend = date_obj.weekday() >= 5  # 5代表星期六，6代表星期日
+                # 如果该月份不在学生字典中，则将其添加到字典中
+                if month not in monthly_counts[student_id]:
+                    monthly_counts[student_id][month] = [0, 0]
+                if not is_weekend and not is_in_range1 and not is_in_range2:
+                    monthly_counts[student_id][month][0] += sum(question_logs.values())
+                else:
+                    monthly_counts[student_id][month][1] += sum(question_logs.values())
+        # 保存为JSON文件
         save_to_json(
             monthly_counts,
-            f"data/temporary/m-p-l/month_use_language_count{index}.json",
+            f"data/temporary/w-a-d-o/workday_and_day_off{index}.json",
         )
 
 
@@ -952,22 +1116,22 @@ def student_merge_feature():
         # 加载答题日志表
         answer_log_df = pd.read_csv(file_path)
         answer_log_df = answer_log_df.drop_duplicates(subset="student_ID")
-        # 将性别映射为0和1
-        answer_log_df["sex"] = answer_log_df["sex"].map({"female": 0, "male": 1})
+        # # 将性别映射为0和1
+        # answer_log_df["sex"] = answer_log_df["sex"].map({"female": 0, "male": 1})
         # # 对年龄进行最小-最大归一化
         # scaler = MinMaxScaler(feature_range=(0, 1))
         # answer_log_df["age"] = scaler.fit_transform(answer_log_df[["age"]])
-        # 对专业进行编码
-        answer_log_df["major"] = answer_log_df["major"].map(
-            {"J23517": 0, "J40192": 1, "J57489": 2, "J78901": 3, "J87654": 4}
-        )
+        # # 对专业进行编码
+        # answer_log_df["major"] = answer_log_df["major"].map(
+        #     {"J23517": 0, "J40192": 1, "J57489": 2, "J78901": 3, "J87654": 4}
+        # )
         # 遍历表格的行
         for _, row in answer_log_df.iterrows():
             # 提取每行数据的学生 ID 和其它信息
             student_id = row["student_ID"]
             if student_id not in student_dict:
                 student_dict[student_id] = {}
-            info = [row["sex"], row["age"], row["major"]]
+            # info = [row["sex"], row["age"], row["major"]]
             # 将学生ID、日期和其它信息添加到字典中
             for date in date_str:
                 if date not in student_dict[student_id]:
@@ -1012,18 +1176,20 @@ def student_merge_feature():
         #                     else:
         #                         student_dict[student_id][date] = values + [0] * alen
         #         break
-        student_dict = multipe_merge("data/temporary/t-d-t-s", student_dict, index)
+        # student_dict = multipe_merge("data/temporary/t-d-t-s", student_dict, index)
+        student_dict = multipe_merge("data/temporary/w-a-d-o", student_dict, index)
         student_dict = multipe_merge("data/temporary/m-a-d", student_dict, index)
-        # student_dict = multipe_merge("data/temporary/t-d-m-s", student_dict, index)
-        student_dict = multipe_merge("data/temporary/m-a-q-n", student_dict, index)
         student_dict = multipe_merge("data/temporary/m-q-s-c", student_dict, index)
-        # student_dict = multipe_merge("data/temporary/m-p-l", student_dict, index)
+        student_dict = multipe_merge("data/temporary/m-a-q-n", student_dict, index)
+        student_dict = multipe_merge("data/temporary/m-p-l", student_dict, index)
+        # student_dict = multipe_merge("data/temporary/t-d-m-s", student_dict, index)
         save_to_json(
             student_dict,
             f"data/temporary/s-m-f/student_merge_feature{index}.json",
         )
 
 
+# 将多个特征组合起来（更新了alen）
 def multipe_merge(folder_path, student_dict, index):
     # 定义正则表达式模式，匹配文件名中的数字部分
     pattern = r"\d+"
@@ -1032,11 +1198,9 @@ def multipe_merge(folder_path, student_dict, index):
     file_names = os.listdir(folder_path)
     parts = folder_path.split("/")
     result = "/".join(parts[2:])
-    alen = 3
-    if result == "m-a-d" or result == "m-q-s-c":
-        alen = 1
-    if result == "m-p-l":
-        alen = 5
+    alen = 1
+    if result == "w-a-d-o":
+        alen = 2
     for file_name in file_names:
         # 使用正则表达式进行匹配
         match = re.search(pattern, file_name)
@@ -1266,6 +1430,15 @@ def tranfer_to_matrix():
         for student_id in student_ids:
             # 如果学生在该月有数据，则添加该数据；否则添加0
             student_month_data = []
+            # 从JSON文件中读取数据
+            with open("data/temporary/month_student_time_period_format.json", "r") as f:
+                time_frame = json.load(f)
+            if student_id in time_frame:
+                student_data = time_frame[student_id]
+                if month in student_data:
+                    student_month_data.extend(student_data[month])
+                else:
+                    student_month_data.extend([0] * 4)
             # 循环遍历文件夹下的每个文件
             for file_name in file_names:
                 # 拼接文件的完整路径
@@ -1276,19 +1449,18 @@ def tranfer_to_matrix():
                 if student_id in data_dict:
                     student_data = data_dict[student_id]
                     if month in student_data:
-                        student_month_data.extend([student_data[month]])
-
-            month_data.extend(student_month_data)
+                        student_month_data.extend(student_data[month])
+            month_data.extend([student_month_data])
         matrix.append(month_data)
     save_to_json(
         matrix,
-        f"data/temporary/month_student_feature.json",
+        f"data/temporary/month_student_feature_time.json",
     )
 
 
 # 对特征进行标准化
 def standard_feature():
-    with open("data/temporary/month_student_feature.json", "r") as f:
+    with open("data/temporary/month_student_feature_time_new.json", "r") as f:
         big_list = json.load(f)
     # 对每个月份的特征进行标准化
     scalers = []  # 存储每个月份的标准化器
@@ -1307,17 +1479,18 @@ def standard_feature():
         )  # 存储标准化后的特征向量
     save_to_json(
         normalized_big_list,
-        f"data/temporary/month_student_feature_normalized.json",
+        f"data/temporary/month_student_feature_time_normalized.json",
     )
 
 
 def try_cluster():
     # 假设你的特征矩阵是一个numpy数组
-    with open("data/temporary/month_student_feature_normalized.json", "r") as f:
+    with open("data/temporary/month_student_feature_time_normalized.json", "r") as f:
         big_list = json.load(f)
-    features = np.array(big_list[0])
+    features = np.array(big_list[4])
+    # print(features.shape)
     # # 使用DBSCAN进行密度聚类
-    # dbscan = DBSCAN(eps=3, min_samples=2)  # 设置半径和最小样本数
+    # dbscan = DBSCAN(eps=0.5, min_samples=4)  # 设置半径和最小样本数
     # labels = dbscan.fit_predict(features)
     # # 绘制聚类结果图
     # plt.figure(figsize=(8, 6))
@@ -1341,7 +1514,7 @@ def try_cluster():
     # pca = PCA(n_components=2)
     # reduced_features = pca.fit_transform(features)
     # 使用KMeans进行聚类
-    kmeans = KMeans(n_clusters=4, random_state=0).fit(features)
+    kmeans = KMeans(n_clusters=3, random_state=0).fit(features)
     # 获取聚类标签
     labels = kmeans.labels_
     # 使用t-SNE进行降维
@@ -1351,10 +1524,16 @@ def try_cluster():
     plt.scatter(
         reduced_features[:, 0], reduced_features[:, 1], c=labels, s=20, cmap="viridis"
     )
+    # alabels = labels.tolist()
+    # save_to_json(
+    #     alabels,
+    #     f"data/temporary/cluster1.json",
+    # )
     # 显示图像
     plt.savefig("my_figure.png")
 
 
+# 将学生和聚类标签对应起来
 def student_to_tag():
     # 假设你的特征矩阵是一个numpy数组
     with open("data/temporary/cluster.json", "r") as f:
@@ -1373,6 +1552,41 @@ def student_to_tag():
     save_to_json(
         combined_list,
         f"data/temporary/student_to_tag.json",
+    )
+
+
+# 排除该月内完全没有做题的情况
+def remove_zero():
+    with open("data/temporary/month_student_feature_time.json", "r") as f:
+        big_list = json.load(f)
+    # with open("data/temporary/cluster1.json", "r") as f:
+    #     cluster_tag = json.load(f)
+    # 提取所有学生的ID
+    # student_ids = []
+    # for _, row in student_info_df.iterrows():
+    #     student_id = row["student_ID"]
+    #     student_ids.append(student_id)
+    # student_ids = sorted(student_ids)
+    filtered_big_list = [[], [], [], [], []]
+    for index, middle_list in enumerate(big_list):
+        for sub_list in middle_list:
+            if sum(sub_list) != 0:
+                filtered_big_list[index].append(sub_list)
+    # other_ids = []
+    # 遍历某个月的列表，判断其是否不为0，是则放到other_ids中用于匹配标签
+    # for index, sub_list in enumerate(big_list[1]):
+    #     if sum(sub_list) != 0:
+    #         other_ids.append(student_ids[index])
+    #         # filtered_big_list[index].append(sub_list)
+    # combined_list = list(zip(other_ids, cluster_tag))
+
+    # save_to_json(
+    #     combined_list,
+    #     f"data/temporary/student_to_tag.json",
+    # )
+    save_to_json(
+        filtered_big_list,
+        f"data/temporary/month_student_feature_time_new.json",
     )
 
 
@@ -1402,3 +1616,5 @@ def student_to_tag():
 # standard_feature()
 try_cluster()
 # student_to_tag()
+# remove_zero()
+# workday_and_day_off()
