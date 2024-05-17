@@ -84,7 +84,8 @@ def extract_features(encoder, data):
 
 # 降维可视化
 def visualize_tsne(features, labels=None):
-    tsne = TSNE(n_components=2, random_state=42)
+    tsne = TSNE(n_components=2)
+    # tsne = TSNE(n_components=2, random_state=42)
     projected_features = tsne.fit_transform(features)
     plt.figure(figsize=(8, 6))
     if labels is None:
@@ -104,6 +105,7 @@ def visualize_clusters(features, num_clusters):
     # kmeans = KMeans(n_clusters=num_clusters, random_state=42)
     # cluster_labels = kmeans.fit_predict(features)
     # 使用高斯混合模型进行聚类
+    # gmm = GaussianMixture(n_components=num_clusters)
     gmm = GaussianMixture(n_components=num_clusters, random_state=42)
     cluster_labels = gmm.fit_predict(features)
     print(cluster_labels)
@@ -115,6 +117,7 @@ def visualize_clusters(features, num_clusters):
 
     #使用 t-SNE 将聚类后的特征投影到二维空间
     tsne = TSNE(n_components=2, random_state=42)
+    # tsne = TSNE(n_components=2)
     projected_features = tsne.fit_transform(features)
     # # 使用 PCA 将聚类后的特征投影到二维空间
     # pca = PCA(n_components=2, random_state=42)
@@ -156,7 +159,7 @@ def visualize_clusters(features, num_clusters):
 # features_matrix = np.random.rand(1000, 17)  # 100个学生，每个学生15个特征
 
 # 读取 JSON 文件
-with open('../data/month_student_feature_normalized(3).json', 'r') as file:
+with open('../data/month_student_feature_normalized_new.json', 'r') as file:
     data = json.load(file)
 # print(data[0])
 # # 新的数组用来存放符合条件的学生属性
@@ -197,7 +200,7 @@ features_matrix = np.array(data[3])
 # 构建自编码器模型
 input_shape = (features_matrix.shape[1],)
 # input_shape = (X.shape[1],)
-encoding_dim = 11
+encoding_dim = 8
 autoencoder, encoder = build_autoencoder(input_shape, encoding_dim)
 # autoencoder, encoder = build_autoencoder(input_shape)
 # # 划分训练集和测试集
@@ -236,6 +239,6 @@ print("Encoded features shape:", encoded_features.shape)
 # visualize_tsne(encoded_features)
 
 # 聚类可视化
-visualize_clusters(features_matrix,num_clusters=4)
-# visualize_clusters(encoded_features,num_clusters=4)
+visualize_clusters(features_matrix,num_clusters=3)
+visualize_clusters(encoded_features,num_clusters=3)
 
