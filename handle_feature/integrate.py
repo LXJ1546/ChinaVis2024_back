@@ -200,64 +200,70 @@ def save_to_json(data, filename):
 # 对每个班的日志信息按学生和题目进行合并，用于掌握程度计算分析
 def student_title():
     question_info_df = pd.read_csv("data/temporary/question_merged_data.csv")
-    index = 0
-    # 定义正则表达式模式，匹配文件名中的数字部分
-    pattern = r"\d+"
-    # 循环遍历文件夹下的每个文件
-    for file_name in file_names:
-        # 使用正则表达式进行匹配
-        match = re.search(pattern, file_name)
-        if match:
-            # 如果找到匹配的数字，则提取并打印
-            index = match.group()
-        # 拼接文件的完整路径
-        file_path = os.path.join(folder_path, file_name)
-        # 加载答题日志表
-        data_info = pd.read_csv(file_path, dtype={"time": "int"})
-        # 合并题目表
-        merged_df = pd.merge(
-            data_info,
-            question_info_df,
-            on="title_ID",
-            how="left",
-            suffixes=("", "_all"),
-        )
+    # index = 0
+    # # 定义正则表达式模式，匹配文件名中的数字部分
+    # pattern = r"\d+"
+    month = ["2023-09", "2023-10", "2023-11", "2023-12", "2024-01"]
+    for mon in month:
         # 使用 defaultdict 来构建字典，初始值是一个空字典
         result_dict = defaultdict(dict)
-        # 遍历答题日志表，按照学生id和题目id进行分组
-        for _, row in merged_df.iterrows():
-            student_id = row["student_ID"]
-            question_id = row["title_ID"]
-
-            # 检查学生id是否已经在字典中，如果不在，则将其添加进去
-            if student_id not in result_dict:
-                result_dict[student_id] = {}
-
-            # 检查题目id是否已经在对应学生id的字典中，如果不在，则将其添加进去
-            if question_id not in result_dict[student_id]:
-                result_dict[student_id][question_id] = []
-
-            # 将提交时间及其他字段的数据组成列表，添加到对应学生id和题目id的列表中
-            result_dict[student_id][question_id].append(
-                [
-                    row["time"],
-                    row["class"],
-                    row["state"],
-                    row["score"],
-                    row["method"],
-                    row["memory"],
-                    row["timeconsume"],
-                    row["score_all"],
-                    row["knowledge"],
-                ]
+        # 循环遍历文件夹下的每个文件
+        for file_name in file_names:
+            # # 使用正则表达式进行匹配
+            # match = re.search(pattern, file_name)
+            # if match:
+            #     # 如果找到匹配的数字，则提取并打印
+            #     index = match.group()
+            # 拼接文件的完整路径
+            file_path = os.path.join(folder_path, file_name)
+            # 加载答题日志表
+            data_info = pd.read_csv(file_path, dtype={"time": "int"})
+            # 合并题目表
+            merged_df = pd.merge(
+                data_info,
+                question_info_df,
+                on="title_ID",
+                how="left",
+                suffixes=("", "_all"),
             )
+            # 遍历答题日志表，按照学生id和题目id进行分组
+            for _, row in merged_df.iterrows():
+                # 提取时间戳并转换为日期对象
+                timestamp = datetime.datetime.fromtimestamp(row["time"])
+                # 提取年月信息
+                year_month = timestamp.strftime("%Y-%m")
+                student_id = row["student_ID"]
+                question_id = row["title_ID"]
+                if mon == year_month:
+                    # 检查学生id是否已经在字典中，如果不在，则将其添加进去
+                    if student_id not in result_dict:
+                        result_dict[student_id] = {}
+
+                    # 检查题目id是否已经在对应学生id的字典中，如果不在，则将其添加进去
+                    if question_id not in result_dict[student_id]:
+                        result_dict[student_id][question_id] = []
+
+                    # 将提交时间及其他字段的数据组成列表，添加到对应学生id和题目id的列表中
+                    result_dict[student_id][question_id].append(
+                        [
+                            row["time"],
+                            row["class"],
+                            row["state"],
+                            row["score"],
+                            row["method"],
+                            row["memory"],
+                            row["timeconsume"],
+                            row["score_all"],
+                            row["knowledge"],
+                        ]
+                    )
         # 遍历结果字典，对每个学生id的题目id列表按提交时间进行排序
         for student_id in result_dict:
             for question_id in result_dict[student_id]:
                 result_dict[student_id][question_id].sort(key=lambda x: x[0])
         # 保存为JSON文件
         save_to_json(
-            result_dict, f"data/temporary/s-t-g/student_title_group{index}.json"
+            result_dict, f"data/temporary/s-t-g-new/student_title_group{mon[5:7]}.json"
         )
 
 
@@ -1319,26 +1325,35 @@ def tranfer_to_matrix():
 
 # 对特征进行标准化
 def standard_feature():
-    with open("data/temporary/month_student_feature_new.json", "r") as f:
+    with open("data/temporary/time/time_cluster_v1.json", "r") as f:
         big_list = json.load(f)
     # 对每个月份的特征进行标准化
     scalers = []  # 存储每个月份的标准化器
     normalized_big_list = []  # 存储标准化后的特征向量
 
-    for month_data in big_list:
-        month_data_array = np.array(month_data)  # 转换为NumPy数组
-        scaler = StandardScaler()
-        scaler.fit(month_data_array)  # 用每个月份的数据来拟合标准化器
-        scalers.append(scaler)  # 存储标准化器
-        normalized_month_data = scaler.transform(
-            month_data_array
-        )  # 对每个月份的特征向量进行标准化
-        normalized_big_list.append(
-            normalized_month_data.tolist()
-        )  # 存储标准化后的特征向量
+    # for month_data in big_list:
+    #     month_data_array = np.array(month_data)  # 转换为NumPy数组
+    #     scaler = StandardScaler()
+    #     scaler.fit(month_data_array)  # 用每个月份的数据来拟合标准化器
+    #     scalers.append(scaler)  # 存储标准化器
+    #     normalized_month_data = scaler.transform(
+    #         month_data_array
+    #     )  # 对每个月份的特征向量进行标准化
+    #     normalized_big_list.append(
+    #         normalized_month_data.tolist()
+    #     )  # 存储标准化后的特征向量
+    month_data_array = np.array(big_list)  # 转换为NumPy数组
+    scaler = StandardScaler()
+    scaler.fit(month_data_array)  # 用每个月份的数据来拟合标准化器
+    scalers.append(scaler)  # 存储标准化器
+    normalized_month_data = scaler.transform(
+        month_data_array
+    )  # 对每个月份的特征向量进行标准化
+    normalized_big_list = normalized_month_data.tolist()
+    # 存储标准化后的特征向量
     save_to_json(
         normalized_big_list,
-        f"data/temporary/month_student_feature_new_normalized.json",
+        f"data/temporary/time/time_cluster_normalized.json",
     )
 
 
@@ -1361,7 +1376,11 @@ def remove_zero():
 # question_merge()
 # student_title()
 # question_grouped()
-# tranfor_time(1703997737)
+# tranfor_time(1695993657)
+# tranfor_time(1698767222)
+# tranfor_time(1700236939)
+# tranfor_time(1703572666)
+# tranfor_time(1704206906)
 # submit_count()
 # find_abnormal()
 # max_count()
@@ -1380,6 +1399,6 @@ def remove_zero():
 # student_merge_feature()
 # min_max_feature()
 # tranfer_to_matrix()
-# standard_feature()
+standard_feature()
 # remove_zero()
 # workday_and_day_off()
