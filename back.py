@@ -25,12 +25,19 @@ def basicInfo():
         result_each.append([row['student_ID'], row['major'], row['age'],
                             row['sex'], row['all_knowledge'], 'class1'])
 
-    result_all.append([data['major'].value_counts().sort_index().index.tolist(),
-                       data['major'].value_counts().sort_index().values.tolist()])
-    result_all.append([data['age'].value_counts().sort_index().index.tolist(),
-                       data['age'].value_counts().sort_index().values.tolist()])
-    result_all.append([data['sex'].value_counts().sort_index().index.tolist(),
-                       data['sex'].value_counts().sort_index().values.tolist()])
+    # result_all.append([data['major'].value_counts().sort_index().index.tolist(),
+    #                    data['major'].value_counts().sort_index().values.tolist()])
+    # result_all.append([data['age'].value_counts().sort_index().index.tolist(),
+    #                    data['age'].value_counts().sort_index().values.tolist()])
+    # result_all.append([data['sex'].value_counts().sort_index().index.tolist(),
+    #                    data['sex'].value_counts().sort_index().values.tolist()])
+
+    for string in ['major', 'age', 'sex']:
+        temp = data[string].value_counts().sort_index()
+        li = []
+        for index, value in temp.items():
+            li.append({'value': value, 'name': index})
+        result_all.append(li)
 
     result = [result_all, result_each]
     return (result)
