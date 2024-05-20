@@ -228,8 +228,8 @@ def student_title():
             )
             # 遍历答题日志表，按照学生id和题目id进行分组
             for _, row in merged_df.iterrows():
-                # 提取时间戳并转换为日期对象
-                timestamp = datetime.datetime.fromtimestamp(row["time"])
+                # 使用datetime模块将Unix时间戳转换为具体的时间
+                timestamp = datetime.datetime.utcfromtimestamp(row["time"])
                 # 提取年月信息
                 year_month = timestamp.strftime("%Y-%m")
                 student_id = row["student_ID"]
@@ -238,11 +238,9 @@ def student_title():
                     # 检查学生id是否已经在字典中，如果不在，则将其添加进去
                     if student_id not in result_dict:
                         result_dict[student_id] = {}
-
                     # 检查题目id是否已经在对应学生id的字典中，如果不在，则将其添加进去
                     if question_id not in result_dict[student_id]:
                         result_dict[student_id][question_id] = []
-
                     # 将提交时间及其他字段的数据组成列表，添加到对应学生id和题目id的列表中
                     result_dict[student_id][question_id].append(
                         [
@@ -312,8 +310,11 @@ def question_grouped():
 def tranfor_time(unix_timestamp):
     # 使用datetime模块将Unix时间戳转换为具体的时间
     specific_time = datetime.datetime.utcfromtimestamp(unix_timestamp)
+    # timestamp = datetime.datetime.fromtimestamp(unix_timestamp)
+    # # 提取年月信息
+    year_month = specific_time.strftime("%Y-%m")
     # 打印转换后的具体时间
-    print("具体时间:", specific_time)
+    print("具体时间:", year_month)
 
 
 # 获取每个学生每天针对多个题目的提交次数
@@ -1374,13 +1375,13 @@ def remove_zero():
 
 # integrate()
 # question_merge()
-# student_title()
+student_title()
 # question_grouped()
-# tranfor_time(1695993657)
-# tranfor_time(1698767222)
-# tranfor_time(1700236939)
-# tranfor_time(1703572666)
-# tranfor_time(1704206906)
+# tranfor_time(1701365126)
+# tranfor_time(1701365529)
+# tranfor_time(1701536839)
+# tranfor_time(1701951722)
+# tranfor_time(1701536765)
 # submit_count()
 # find_abnormal()
 # max_count()
@@ -1399,6 +1400,6 @@ def remove_zero():
 # student_merge_feature()
 # min_max_feature()
 # tranfer_to_matrix()
-standard_feature()
+# standard_feature()
 # remove_zero()
 # workday_and_day_off()
