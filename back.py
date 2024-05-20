@@ -53,8 +53,32 @@ def basicInfo():
     result = [result_all, result_each]
     return result
 
+# 知识点
+
+
+@app.route("/knowledgeMasterInfo")
+def knowledgeMasterInfo():
+    file = './data/knowledge/Data_TitleInfo.csv'
+    title = pd.read_csv(file)
+    re = []
+    knowledge_group = title.groupby('knowledge')
+    for knowledge in knowledge_group:
+        print(knowledge[0])
+        re.append({'name': knowledge[0], 'children': []})
+        sub_knowledge_group = knowledge[1].groupby('sub_knowledge')
+        for sub_knowledge in sub_knowledge_group:
+            # re[-1]表示该列表最后一个元素
+            re[-1]['children'].append({'name': sub_knowledge[0],
+                                      'children': []})
+            for index, row in sub_knowledge[1].iterrows():
+                # print(row)
+                re[-1]['children'][-1]['children'].append(
+                    {'name': row['title_ID'], 'value': row['score']})
+    return (re)
 
 # 协助获取聚类所需的坐标数据以及对应的标签数据
+
+
 def group_cluster_data(file_path1, file_path2, num=0):
     with open(file_path1, "r") as f:
         cluster_features = json.load(f)
