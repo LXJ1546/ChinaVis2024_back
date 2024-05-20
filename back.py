@@ -1,9 +1,10 @@
-from flask import Flask
+from flask import Flask, request
 from flask_cors import CORS
 import pandas as pd
 import os
 import re
 import json
+import logging
 
 
 app = Flask(__name__)
@@ -16,11 +17,16 @@ def hello():
     return "Hello, World!"
 
 
-@app.route("/basicInfo")
+@app.route("/basicInfo", methods=['GET', 'POST'])
 def basicInfo():
     # 后续需要根据班级获取不同班的数据
+    id = request.json.get('data')  # post
+    # id = request.args.get('data')  # 用于get
+    # print('--------------------------------------', id)
     file_temp = "./data/classes/basic_info_"
-    file = file_temp + "1.csv"
+    file = file_temp + str(id) + ".csv"
+    # file = file_temp + "1.csv"
+
     data = pd.read_csv(file).sort_values(by="all_knowledge", ascending=False)
     result_each = []  # 每个学生分别的信息
     result_all = []  # 总的信息，比如每个专业的人数
@@ -121,3 +127,4 @@ def cluster_data():
 
 if __name__ == "__main__":
     app.run(debug=True)
+    app.logger.setLevel(logging.DEBUG)
