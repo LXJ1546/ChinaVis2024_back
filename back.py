@@ -1,9 +1,10 @@
-from flask import Flask
+from flask import Flask, request
 from flask_cors import CORS
 import pandas as pd
 import os
 import re
 import json
+import logging
 
 
 app = Flask(__name__)
@@ -16,11 +17,16 @@ def hello():
     return "Hello, World!"
 
 
-@app.route("/basicInfo")
+@app.route("/basicInfo", methods=['GET', 'POST'])
 def basicInfo():
     # 后续需要根据班级获取不同班的数据
+    id = request.json.get('data')  # post
+    # id = request.args.get('data')  # 用于get
+    # print('--------------------------------------', id)
     file_temp = "./data/classes/basic_info_"
-    file = file_temp + "1.csv"
+    file = file_temp + str(id) + ".csv"
+    # file = file_temp + "1.csv"
+
     data = pd.read_csv(file).sort_values(by="all_knowledge", ascending=False)
     result_each = []  # 每个学生分别的信息
     result_all = []  # 总的信息，比如每个专业的人数
@@ -53,8 +59,32 @@ def basicInfo():
     result = [result_all, result_each]
     return result
 
+# 知识点
+
+
+@app.route("/knowledgeMasterInfo")
+def knowledgeMasterInfo():
+    file = './data/knowledge/Data_TitleInfo.csv'
+    title = pd.read_csv(file)
+    re = []
+    knowledge_group = title.groupby('knowledge')
+    for knowledge in knowledge_group:
+        print(knowledge[0])
+        re.append({'name': knowledge[0], 'children': []})
+        sub_knowledge_group = knowledge[1].groupby('sub_knowledge')
+        for sub_knowledge in sub_knowledge_group:
+            # re[-1]表示该列表最后一个元素
+            re[-1]['children'].append({'name': sub_knowledge[0],
+                                      'children': []})
+            for index, row in sub_knowledge[1].iterrows():
+                # print(row)
+                re[-1]['children'][-1]['children'].append(
+                    {'name': row['title_ID'], 'value': row['score']})
+    return (re)
 
 # 协助获取聚类所需的坐标数据以及对应的标签数据
+
+
 def group_cluster_data(file_path1, file_path2, num=0):
     with open(file_path1, "r") as f:
         cluster_features = json.load(f)
@@ -97,3 +127,4 @@ def cluster_data():
 
 if __name__ == "__main__":
     app.run(debug=True)
+    app.logger.setLevel(logging.DEBUG)
