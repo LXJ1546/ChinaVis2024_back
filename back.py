@@ -63,26 +63,85 @@ def basicInfo():
 
 # 知识点
 
-
-@app.route("/knowledgeMasterInfo")
+@app.route("/knowledgeMasterInfo", methods=["GET", "POST"])
 def knowledgeMasterInfo():
-    file = "./data/knowledge/Data_TitleInfo.csv"
+    id = request.json.get("data")  # post
+
+    # file = "./data/knowledge/Data_TitleInfo.csv"
+    # title = pd.read_csv(file)
+    # re = []
+    # knowledge_group = title.groupby("knowledge")
+    # for knowledge in knowledge_group:
+    #     print(knowledge[0])
+    #     re.append({"name": knowledge[0], "children": []})
+    #     sub_knowledge_group = knowledge[1].groupby("sub_knowledge")
+    #     for sub_knowledge in sub_knowledge_group:
+    #         # re[-1]表示该列表最后一个元素
+    #         re[-1]["children"].append({"name": sub_knowledge[0], "children": []})
+    #         for index, row in sub_knowledge[1].iterrows():
+    #             # print(row)
+    #             re[-1]["children"][-1]["children"].append(
+    #                 {"name": row["title_ID"], "value": row["score"]}
+    #             )
+
+    df_knowledge = pd.DataFrame()
+    df_sub_knowledge = pd.DataFrame()
+    df_title = pd.DataFrame()
+
+    store_file1 = './data/knowledge/knowledge/student_master_knowledge_'
+    store_file2 = './data/knowledge/sub_knowledge/student_master_sub_knowledge_'
+    store_file3 = './data/knowledge/title_master/student_master_title_'
+
+    for i in range(1, 15):
+        knowledge = pd.read_csv(store_file1+str(i+1)+'.csv')
+        df_knowledge = pd.concat([df_knowledge, knowledge], ignore_index=True)
+
+        sub_knowledge = pd.read_csv(store_file2+str(i+1)+'.csv')
+        df_sub_knowledge = pd.concat(
+            [df_sub_knowledge, sub_knowledge], ignore_index=True)
+
+        title = pd.read_csv(store_file3+str(i+1)+'.csv')
+        df_title = pd.concat([df_title, title], ignore_index=True)
+
+    knowledge_mean = df_knowledge.mean().round(4)
+
+    sub_knowledge_mean = df_sub_knowledge.mean().round(4)
+
+    title_mean = df_title.mean().round(4)
+    icon = {
+        'Question_q7OpB2zCMmW9wS8uNt3H': 0,
+        'Question_QRm48lXxzdP7Tn1WgNOf': 1,
+        'Question_pVKXjZn0BkSwYcsa7C31': 2,
+        'Question_lU2wvHSZq7m43xiVroBc': 3,
+        'Question_x2Fy7rZ3SwYl9jMQkpOD': 4,
+        'Question_oCjnFLbIs4Uxwek9rBpu': 5
+    }
+
+    file = './data/knowledge/Data_TitleInfo.csv'
     title = pd.read_csv(file)
     re = []
-    knowledge_group = title.groupby("knowledge")
+    knowledge_group = title.groupby('knowledge')
     for knowledge in knowledge_group:
-        print(knowledge[0])
-        re.append({"name": knowledge[0], "children": []})
-        sub_knowledge_group = knowledge[1].groupby("sub_knowledge")
+        # print(knowledge[0])
+        re.append(
+            {'name': knowledge[0], 'score': knowledge_mean[knowledge[0]], 'children': []})
+        sub_knowledge_group = knowledge[1].groupby('sub_knowledge')
         for sub_knowledge in sub_knowledge_group:
             # re[-1]表示该列表最后一个元素
-            re[-1]["children"].append({"name": sub_knowledge[0], "children": []})
+            re[-1]['children'].append({'name': sub_knowledge[0],
+                                       'score': sub_knowledge_mean[sub_knowledge[0]], 'children': []})
             for index, row in sub_knowledge[1].iterrows():
                 # print(row)
-                re[-1]["children"][-1]["children"].append(
-                    {"name": row["title_ID"], "value": row["score"]}
-                )
-    return re
+                if (row['title_ID'] in icon.keys()):
+                    re[-1]['children'][-1]['children'].append(
+                        {'name': row['title_ID'], 'score': title_mean[row['title_ID']], 'value': row['score'], 'icon': icon[row['title_ID']]})
+                else:
+                    re[-1]['children'][-1]['children'].append(
+                        {'name': row['title_ID'], 'score': title_mean[row['title_ID']], 'value': row['score']})
+    # print(re)
+    reInfo = {'name': 'Q1',
+              'children': re}
+    return reInfo
 
 
 # 协助获取聚类所需的坐标数据以及对应的标签数据
