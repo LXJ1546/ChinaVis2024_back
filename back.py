@@ -5,6 +5,7 @@ import os
 import re
 import json
 import logging
+from collections import Counter
 
 
 app = Flask(__name__)
@@ -124,6 +125,108 @@ def cluster_data():
     f = group_cluster_data(time_feature_path, time_label_path)
     merged_data = [a, b, c, d, e, f]
     return merged_data
+
+
+# 相关性系数列表
+@app.route("/correlationData")
+def correlation_data():
+    data_list = [
+        [
+            [0, 0, 0.139],
+            [0, 1, 0.345],
+            [0, 2, 0.183],
+            [1, 0, 0.05],
+            [1, 1, -0.504],
+            [1, 2, 0.088],
+            [2, 0, 0.258],
+            [2, 1, 0.352],
+            [2, 2, 0.443],
+            [3, 0, 0.755],
+            [3, 1, 0.694],
+            [3, 2, 0.597],
+        ],
+        [
+            [0, 0, -0.189],
+            [0, 1, 0.378],
+            [0, 2, -0.178],
+            [1, 0, 0.133],
+            [1, 1, -0.480],
+            [1, 2, 0.100],
+            [2, 0, 0.321],
+            [2, 1, 0.148],
+            [2, 2, 0.416],
+            [3, 0, 0.702],
+            [3, 1, 0.742],
+            [3, 2, 0.594],
+        ],
+        [
+            [0, 0, -0.051],
+            [0, 1, 0.388],
+            [0, 2, -0.227],
+            [1, 0, -0.157],
+            [1, 1, -0.303],
+            [1, 2, 0.047],
+            [2, 0, 0.096],
+            [2, 1, 0.107],
+            [2, 2, 0.323],
+            [3, 0, 0.616],
+            [3, 1, 0.777],
+            [3, 2, 0.569],
+        ],
+        [
+            [0, 0, 0.031],
+            [0, 1, 0.472],
+            [0, 2, -0.248],
+            [1, 0, -0.409],
+            [1, 1, -0.319],
+            [1, 2, -0.046],
+            [2, 0, 0.022],
+            [2, 1, 0.462],
+            [2, 2, 0.457],
+            [3, 0, 0.585],
+            [3, 1, 0.623],
+            [3, 2, 0.536],
+        ],
+        [
+            [0, 0, 0.039],
+            [0, 1, 0.885],
+            [0, 2, -0.131],
+            [1, 0, -0.142],
+            [1, 1, -0.854],
+            [1, 2, -0.664],
+            [2, 0, 0.040],
+            [2, 1, 0.798],
+            [2, 2, 0.160],
+            [3, 0, 0.825],
+            [3, 1, 0.936],
+            [3, 2, 0.340],
+        ],
+    ]
+    return data_list
+
+
+@app.route("/transferData", methods=["GET", "POST"])
+# 计算模式转移的数量
+def get_mode_shift_data():
+    # 拿到前端传递的参数
+    month1 = request.args.get("pre_month")
+    month2 = request.args.get("bk_month")
+    # 根据月份读取数据
+    with open(f"data/cluster/student_tag_dict{month1}.json", "r") as f:
+        left_dict = json.load(f)
+    with open(f"data/cluster/student_tag_dict{month2}.json", "r") as f:
+        right_dict = json.load(f)
+    # 计算每个每个模式的学生数量
+    # left_value_counter = Counter(left_dict.values())
+    right_value_counter = Counter(right_dict.values())
+    # 将 Counter 对象的值转换为列表
+    # left_values_list = list(left_value_counter.values())
+    right_values_list = list(right_value_counter.values())
+    transfer_matrix = [[0 for _ in range(4)] for _ in range(4)]
+    for student_id, tag in left_dict.items():
+        if tag != right_dict[student_id]:
+            transfer_matrix[tag][right_dict[student_id]] += 1
+    return [right_values_list, transfer_matrix]
 
 
 if __name__ == "__main__":
