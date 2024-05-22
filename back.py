@@ -31,17 +31,44 @@ def basicInfo():
     data = pd.read_csv(file).sort_values(by="all_knowledge", ascending=False)
     result_each = []  # 每个学生分别的信息
     result_all = []  # 总的信息，比如每个专业的人数
-    for index, row in data.iterrows():
-        result_each.append(
-            [
-                row["student_ID"],
-                row["major"],
-                row["age"],
-                row["sex"],
-                row["all_knowledge"],
-                "class1",
-            ]
-        )
+    if (id != 'all'):
+        for index, row in data.iterrows():
+            result_each.append(
+                [
+                    row["student_ID"],
+                    row["major"],
+                    row["age"],
+                    row["sex"],
+                    row["all_knowledge"],
+                    "class1",
+                ]
+            )
+    else:
+        store_file = './data/classes/basic_info/basic_info_all.csv'
+        s = pd.read_csv(store_file)['all_knowledge']
+        # 获取30%和70%分位数对应的具体数值,实际上对应我需要的70%和30%
+        percentiles = s.quantile([0.3, 0.7])
+        # print(percentiles[0.3])
+        # 分班级
+        master_file = './data/classes/basic_info/basic_info_'
+        for i in range(1, 16):
+            master_file_class = pd.read_csv(master_file+str(i)+'.csv')
+            # print(master_file_class['all_knowledge'].mean(numeric_only=True))
+            high = 0
+            mid = 0
+            low = 0
+            for index, value in master_file_class['all_knowledge'].items():
+                if (value > percentiles[0.7]):
+                    high = high+1
+                elif (value <= percentiles[0.3]):
+                    low = low+1
+                else:
+                    mid = mid+1
+            result_each.append(
+                ['class'+str(i), master_file_class['all_knowledge'].mean(numeric_only=True).round(4), [high, mid, low]])
+        result_each = sorted(result_each, key=lambda x: x[1], reverse=True)
+        result_each = [[x[0], str(x[1]), x[2]] for x in result_each]
+        # print(result_each)
 
     # result_all.append([data['major'].value_counts().sort_index().index.tolist(),
     #                    data['major'].value_counts().sort_index().values.tolist()])
