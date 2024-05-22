@@ -92,22 +92,34 @@ def knowledgeMasterInfo():
     store_file2 = './data/knowledge/sub_knowledge/student_master_sub_knowledge_'
     store_file3 = './data/knowledge/title_master/student_master_title_'
 
-    for i in range(1, 15):
-        knowledge = pd.read_csv(store_file1+str(i+1)+'.csv')
+    if (id == 'all'):
+        for i in range(1, 15):
+            knowledge = pd.read_csv(store_file1+str(i+1)+'.csv')
+            df_knowledge = pd.concat(
+                [df_knowledge, knowledge], ignore_index=True)
+
+            sub_knowledge = pd.read_csv(store_file2+str(i+1)+'.csv')
+            df_sub_knowledge = pd.concat(
+                [df_sub_knowledge, sub_knowledge], ignore_index=True)
+
+            title = pd.read_csv(store_file3+str(i+1)+'.csv')
+            df_title = pd.concat([df_title, title], ignore_index=True)
+    else:
+        knowledge = pd.read_csv(store_file1+id+'.csv')
         df_knowledge = pd.concat([df_knowledge, knowledge], ignore_index=True)
 
-        sub_knowledge = pd.read_csv(store_file2+str(i+1)+'.csv')
+        sub_knowledge = pd.read_csv(store_file2+id+'.csv')
         df_sub_knowledge = pd.concat(
             [df_sub_knowledge, sub_knowledge], ignore_index=True)
 
-        title = pd.read_csv(store_file3+str(i+1)+'.csv')
+        title = pd.read_csv(store_file3+id+'.csv')
         df_title = pd.concat([df_title, title], ignore_index=True)
 
-    knowledge_mean = df_knowledge.mean().round(4)
+    knowledge_mean = df_knowledge.mean(numeric_only=True).round(4)
 
-    sub_knowledge_mean = df_sub_knowledge.mean().round(4)
+    sub_knowledge_mean = df_sub_knowledge.mean(numeric_only=True).round(4)
 
-    title_mean = df_title.mean().round(4)
+    title_mean = df_title.mean(numeric_only=True).round(4)
     icon = {
         'Question_q7OpB2zCMmW9wS8uNt3H': 0,
         'Question_QRm48lXxzdP7Tn1WgNOf': 1,
