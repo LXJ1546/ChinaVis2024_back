@@ -24,7 +24,7 @@ def basicInfo():
     id = request.json.get("data")  # post
     # id = request.args.get('data')  # 用于get
     # print('--------------------------------------', id)
-    file_temp = "./data/classes/basic_info_"
+    file_temp = "./data/classes/basic_info/basic_info_"
     file = file_temp + str(id) + ".csv"
     # file = file_temp + "1.csv"
 
@@ -60,8 +60,45 @@ def basicInfo():
     result = [result_all, result_each]
     return result
 
+# 题目掌握程度
 
+
+@app.route("/titleMasterInfo", methods=["GET", "POST"])
+def titleMasterInfo():
+    id = request.json.get("data")  # post
+
+    master_file = './data/classes/title_master/student_master_title_' + \
+        str(id)+'.csv'
+    score_file = './data/classes/title_score_rate/student_master_title_' + \
+        str(id)+'.csv'
+    correct_file = './data/classes/correct_rate/correct_rate_class_' + \
+        str(id)+'.csv'
+
+    time_file = './data/classes/time_count/class_' + \
+        str(id)+'.json'
+    memory_file = './data/classes/memory_count/class_' + \
+        str(id)+'.json'
+
+    master_info = pd.read_csv(master_file).mean(numeric_only=True).round(4)
+    score_info = pd.read_csv(score_file).mean(numeric_only=True).round(4)
+    correct_info = pd.read_csv(correct_file).mean(numeric_only=True).round(4)
+    re = []
+    re.append({'name': '掌握程度',
+               'data': list(master_info.values),
+               'type': 'line',
+               'smooth': 'true'})
+    re.append({'name': '得分率',
+               'data': list(score_info.values),
+               'type': 'line',
+               'smooth': 'true'})
+    re.append({'name': '正确占比',
+               'data': list(correct_info.values),
+               'type': 'line',
+               'smooth': 'true'})
+    print(re)
+    return (re)
 # 知识点
+
 
 @app.route("/knowledgeMasterInfo", methods=["GET", "POST"])
 def knowledgeMasterInfo():
