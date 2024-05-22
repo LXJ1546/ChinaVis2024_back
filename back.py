@@ -106,9 +106,16 @@ def read_json(f_name):
 
 @app.route("/titleTimeMemoryInfo", methods=["GET", "POST"])
 def titleTimeMemoryInfo():
-    # id = request.json.get("data")  # post 这里应该获取到两个信息，班级和题目
-    id = 1
-    title = 'Question_3MwAFlmNO8EKrpY5zjUd'
+    id = request.json.get("data")  # post 这里应该获取到两个信息，班级和题目
+    # print(data)  # prin
+    data = request.json.get("name")  # post 这里应该获取到两个信息，班级和题目
+
+    titleTo = {'Q_bum': 'Question_bumGRTJ0c8p4v5D6eHZa', 'Q_62X': 'Question_62XbhBvJ8NUSnApgDL94', 'Q_ZTb': 'Question_ZTbD7mxr2OUp8Fz6iNjy', 'Q_FNg': 'Question_FNg8X9v5zcbB1tQrxHR3', 'Q_hZ5': 'Question_hZ5wXofebmTlzKB1jNcP', 'Q_xql': 'Question_xqlJkmRaP0otZcX4fK3W', 'Q_YWX': 'Question_YWXHr4G6Cl7bEm9iF2kQ', 'Q_X3w': 'Question_X3wF8QlTyi4mZkDp9Kae', 'Q_5fg': 'Question_5fgqjSBwTPG7KUV3it6O', 'Q_oCj': 'Question_oCjnFLbIs4Uxwek9rBpu', 'Q_EhV': 'Question_EhVPdmlB31M8WKGqL0wc', 'Q_Az7': 'Question_Az73sM0rHfWVKuc4X2kL', 'Q_Ou3': 'Question_Ou3f2Wt9BqExm5DpN7Zk', 'Q_UXq': 'Question_UXqN1F7G3Sbldz02vZne', 'Q_x2F': 'Question_x2Fy7rZ3SwYl9jMQkpOD', 'Q_Mh4': 'Question_Mh4CZIsrEfxkP1wXtOYV', 'Q_lU2': 'Question_lU2wvHSZq7m43xiVroBc', 'Q_Ej5': 'Question_Ej5mBw9rsOUKkFycGvz2', 'Q_pVK': 'Question_pVKXjZn0BkSwYcsa7C31',
+               'Q_QRm': 'Question_QRm48lXxzdP7Tn1WgNOf', 'Q_Jr4': 'Question_Jr4Wz5jLqmN01KUwHa7g', 'Q_7NJ': 'Question_7NJzCXUPcvQF4Mkfh9Wr', 'Q_n2B': 'Question_n2BTxIGw1Mc3Zo6RLdUe', 'Q_Nix': 'Question_NixCn84GdK2tySa5rB1V', 'Q_TmK': 'Question_TmKaGvfNoXYq4FZ2JrBu', 'Q_s6V': 'Question_s6VmP1G4UbEQWRYHK9Fd', 'Q_tgO': 'Question_tgOjrpZLw4RdVzQx85h6', 'Q_4nH': 'Question_4nHcauCQ0Y6Pm8DgKlLo', 'Q_6RQ': 'Question_6RQj2gF3OeK5AmDvThUV', 'Q_h7p': 'Question_h7pXNg80nJbw1C4kAPRm', 'Q_x2L': 'Question_x2L7AqbMuTjCwPFy6vNr', 'Q_3Mw': 'Question_3MwAFlmNO8EKrpY5zjUd', 'Q_3oP': 'Question_3oPyUzDmQtcMfLpGZ0jW', 'Q_rvB': 'Question_rvB9mVE6Kbd8jAY4NwPx', 'Q_BW0': 'Question_BW0ItEaymH3TkD6S15JF', 'Q_fZr': 'Question_fZrP3FJ4ebUogW9V7taS', 'Q_q7O': 'Question_q7OpB2zCMmW9wS8uNt3H', 'Q_VgK': 'Question_VgKw8PjY1FR6cm2QI9XW'}
+
+    title = titleTo[data]
+    # id = 1
+    # title = 'Question_3MwAFlmNO8EKrpY5zjUd'
 
     time_file = './data/classes/time_count/class_' + \
         str(id)+'.json'
