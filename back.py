@@ -74,11 +74,6 @@ def titleMasterInfo():
     correct_file = './data/classes/correct_rate/correct_rate_class_' + \
         str(id)+'.csv'
 
-    time_file = './data/classes/time_count/class_' + \
-        str(id)+'.json'
-    memory_file = './data/classes/memory_count/class_' + \
-        str(id)+'.json'
-
     master_info = pd.read_csv(master_file).mean(numeric_only=True).round(4)
     score_info = pd.read_csv(score_file).mean(numeric_only=True).round(4)
     correct_info = pd.read_csv(correct_file).mean(numeric_only=True).round(4)
@@ -95,8 +90,47 @@ def titleMasterInfo():
                'data': list(correct_info.values),
                'type': 'line',
                'smooth': 'true'})
-    print(re)
+    # print(re)
     return (re)
+
+
+def read_json(f_name):
+    # f_name = 'F:/vscode/vis24/data/datap/knowledge_to_title.json'
+    f = open(f_name, 'r')
+    content = f.read()
+    f.close()
+    return (json.loads(content))
+
+# 题目用时和内存分布
+
+
+@app.route("/titleTimeMemoryInfo", methods=["GET", "POST"])
+def titleTimeMemoryInfo():
+    # id = request.json.get("data")  # post 这里应该获取到两个信息，班级和题目
+    id = 1
+    title = 'Question_3MwAFlmNO8EKrpY5zjUd'
+
+    time_file = './data/classes/time_count/class_' + \
+        str(id)+'.json'
+    memory_file = './data/classes/memory_count/class_' + \
+        str(id)+'.json'
+
+    memory_data = read_json(memory_file)
+    time_data = read_json(time_file)
+
+    re = {}
+    time_dic = dict(
+        sorted(time_data[title].items(), key=lambda d: float(d[0]), reverse=False))
+    memory_dic = dict(
+        sorted(memory_data[title].items(), key=lambda d: float(d[0]), reverse=False))
+    re['time'] = {'keys': list(time_dic.keys()),
+                  'value': list(time_dic.values())}
+    re['memory'] = {'keys': list(memory_dic.keys()),
+                    'value': list(memory_dic.values())}
+
+    return (re)
+
+
 # 知识点
 
 
