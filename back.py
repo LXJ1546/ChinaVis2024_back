@@ -13,6 +13,13 @@ app = Flask(__name__)
 CORS(app)
 
 
+def read_json(f_name):
+    f = open(f_name, 'r')
+    content = f.read()
+    f.close()
+    return (json.loads(content))
+
+
 @app.route("/back")
 def hello():
     return "Hello, World!"
@@ -120,13 +127,6 @@ def titleMasterInfo():
     # print(re)
     return (re)
 
-
-def read_json(f_name):
-    # f_name = 'F:/vscode/vis24/data/datap/knowledge_to_title.json'
-    f = open(f_name, 'r')
-    content = f.read()
-    f.close()
-    return (json.loads(content))
 
 # 题目用时和内存分布
 
@@ -273,6 +273,126 @@ def knowledgeMasterInfo():
     reInfo = {'name': 'Q1',
               'children': re}
     return reInfo
+
+# 学习日历图
+
+
+@app.route("/learnCalendarInfo", methods=["GET", "POST"])
+def learnCalendarInfo():
+    ids = request.json.get("data")  # 学生id列表
+    month = request.json.get("month")
+    language = ['Method_Cj9Ya2R7fZd6xs1q5mNQ', 'Method_gj1NLb4Jn7URf9K2kQPd',
+                'Method_5Q4KoXthUuYz3bvrTDFm', 'Method_m8vwGkEZc3TSW2xqYUoR', 'Method_BXr9AIsPQhwNvyGdZL57']
+
+    file = './data/detail/aaa.csv'
+    df = pd.read_csv(file)
+    students = df[df['student_ID'].isin(ids)]
+    students_m = students[students['month'] == month]
+
+    re = {}
+    # print(students_m)
+    stu_group = students_m.groupby('student_ID')
+    for g in stu_group:
+        re[g[0]] = {}
+        sort_g = g[1].sort_values('date')
+        date_g = sort_g.groupby('date')
+        for date in date_g:
+            re[g[0]][str(date[0])] = []
+            # 正确率
+            result_status = date[1]['state'].value_counts(
+                normalize=True)
+            correct_rate = 0
+            if 'Absolutely_Correct' in result_status.index:
+                correct_rate = correct_rate+result_status['Absolutely_Correct']
+            if 'Partially_Correct' in result_status.index:
+                correct_rate = correct_rate+result_status['Partially_Correct']
+            re[g[0]][str(date[0])].append(correct_rate)
+            # 答题数
+            title_num = len(date[1]['title_ID'].value_counts().index)
+            re[g[0]][str(date[0])].append(title_num)
+            # 语言
+            all_counts = len(date[1])  # 总提交次数
+
+            temp = []
+            all_language = date[1].value_counts('method')
+            for lan in language:
+                # 判断语言是否存在
+                if lan in all_language.index:
+                    temp.append(all_language[lan]/all_counts)
+                else:
+                    temp.append(0)
+            re[g[0]][str(date[0])].append(temp)
+
+            # 提交次数
+            re[g[0]][str(date[0])].append(all_counts)
+
+        # print(sort_g)
+    # print(re)
+    return (re)
+
+# 个人提交图
+
+
+@app.route("/personalSubmitInfo", methods=["GET", "POST"])
+def personalSubmitInfo():
+    student_id = request.json.get("data")  # 学生id列表
+    learning_date = request.json.get("date")
+    # 用时分布
+    title_timeconsume_count = read_json(
+        './data/detail/title_timeconsume_count.json')
+    # 内存分布
+    title_memory_count = read_json(
+        './data/detail/title_memory_count.json')
+
+    file = './data/detail/aaa.csv'
+    df = pd.read_csv(file)
+    info = df[(df['student_ID'] == student_id) & (df['date'] == learning_date)]
+    # print(info)
+    title_g = info.groupby('title_ID')
+    re = {}
+    # 按题目分组
+    for g in title_g:
+        re['Q_'+g[0][9:12]] = []
+        sort_g = g[1].sort_values('time')
+        # print('------------', '\n', sort_g)
+        # 对每次提交依次处理
+        for index, row in sort_g.iterrows():
+            re['Q_'+g[0][9:12]].append([])
+            answer_state = row['state']
+            # 完全正确的用时内存分布
+            if (answer_state == 'Absolutely_Correct'):
+                total_correct_count = sum(
+                    title_timeconsume_count[g[0]].values())
+                # 用时
+                temp_sum = 0
+                for key in title_timeconsume_count[g[0]].keys():
+                    if (int(float(key)) <= int(row['timeconsume'])):
+                        temp_sum = temp_sum + \
+                            title_timeconsume_count[g[0]][key]
+                timeconsume_rank_temp = temp_sum/total_correct_count
+                re['Q_'+g[0][9:12]][-1].append(timeconsume_rank_temp)
+
+                temp_sum = 0
+                # 内存
+                for key in title_memory_count[g[0]].keys():
+                    if (int(key) <= int(row['memory'])):
+                        temp_sum = temp_sum + \
+                            title_memory_count[g[0]][key]
+                memory_rank_temp = temp_sum/total_correct_count
+                re['Q_'+g[0][9:12]][-1].append(memory_rank_temp)
+            else:
+                re['Q_'+g[0][9:12]][-1].append(1)
+                re['Q_'+g[0][9:12]][-1].append(1)
+
+            # 答题状态
+            re['Q_'+g[0][9:12]][-1].append(answer_state)
+            # 方法
+            re['Q_'+g[0][9:12]][-1].append(row['method'][0:8])
+            # 提交时间
+            re['Q_'+g[0][9:12]][-1].append(row['time'])
+
+    # print(re)
+    return (re)
 
 
 # 协助获取聚类所需的坐标数据以及对应的标签数据
