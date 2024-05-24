@@ -171,6 +171,7 @@ def titleTimeMemoryInfo():
 @app.route("/knowledgeMasterInfo", methods=["GET", "POST"])
 def knowledgeMasterInfo():
     id = request.json.get("data")  # post
+    title_value = request.json.get("title")
 
     # file = "./data/knowledge/Data_TitleInfo.csv"
     # title = pd.read_csv(file)
@@ -197,6 +198,8 @@ def knowledgeMasterInfo():
     store_file2 = './data/knowledge/sub_knowledge/student_master_sub_knowledge_'
     store_file3 = './data/knowledge/title_master/student_master_title_'
 
+    store_title_score = './data/classes/correct_rate/correct_rate_class_'
+
     if (id == 'all'):
         for i in range(1, 15):
             knowledge = pd.read_csv(store_file1+str(i+1)+'.csv')
@@ -207,8 +210,14 @@ def knowledgeMasterInfo():
             df_sub_knowledge = pd.concat(
                 [df_sub_knowledge, sub_knowledge], ignore_index=True)
 
-            title = pd.read_csv(store_file3+str(i+1)+'.csv')
-            df_title = pd.concat([df_title, title], ignore_index=True)
+            # 题目得分率
+            if (title_value == 'score'):
+                title = pd.read_csv(store_title_score+str(i+1)+'.csv')
+                df_title = pd.concat([df_title, title], ignore_index=True)
+            # 题目掌握程度
+            else:
+                title = pd.read_csv(store_file3+str(i+1)+'.csv')
+                df_title = pd.concat([df_title, title], ignore_index=True)
     else:
         knowledge = pd.read_csv(store_file1+id+'.csv')
         df_knowledge = pd.concat([df_knowledge, knowledge], ignore_index=True)
@@ -217,8 +226,13 @@ def knowledgeMasterInfo():
         df_sub_knowledge = pd.concat(
             [df_sub_knowledge, sub_knowledge], ignore_index=True)
 
-        title = pd.read_csv(store_file3+id+'.csv')
-        df_title = pd.concat([df_title, title], ignore_index=True)
+        # 题目得分率
+        if (title_value == 'score'):
+            title = pd.read_csv(store_title_score+id+'.csv')
+            df_title = pd.concat([df_title, title], ignore_index=True)
+        else:
+            title = pd.read_csv(store_file3+id+'.csv')
+            df_title = pd.concat([df_title, title], ignore_index=True)
 
     knowledge_mean = df_knowledge.mean(numeric_only=True).round(4)
 
