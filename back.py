@@ -435,6 +435,46 @@ def featureStatisticsInfo():
     return (final_re)
 
 
+@app.route("/allPeriodInfo", methods=["GET", "POST"])
+def allPeriodInfo():
+    total_student = 1364
+    features = read_json('./data/cluster/time_cluster_original_feature.json')
+
+    label = []
+    for month in [9, 10, 11, 12, 1]:
+        # 工作日、休息日
+        for weekday in [1, 0]:
+            # 时间段
+            for period in ['Dawn', 'Morning', 'Afternoon', 'Evening']:
+                key = str(month)+'-'+str(weekday)+'-'+period
+                label.append(key)
+
+    result = {}
+
+    # 时间段
+    pattern1 = r'\d+-([A-Za-z]+)'
+    # 月份
+    pattern2 = r'(\d+)'
+    for i in range(len(features)):
+        period = re.search(pattern1, label[i]).group(0)
+        month = re.search(pattern2, label[i]).group(0)
+        if period not in result:
+            result[period] = {}
+
+        result[period][int(month)] = [features[i][0]*total_student,
+                                      features[i][1]*total_student, features[i][-1]]
+    # print(result)
+
+    final_re = {}
+    to_1 = {'0': '休息日', '1': '工作日'}
+    to_2 = {'Dawn': '凌晨', 'Morning': '上午', 'Afternoon': '下午', 'Evening': '晚上'}
+    for key, value in result.items():
+        key_list = key.split('-')
+        final_re[to_2[key_list[1]]+'-'+to_1[key_list[0]]] = value
+    # print(final_re)
+    return (final_re)
+
+
 # 协助获取聚类所需的坐标数据以及对应的标签数据
 def group_cluster_data(file_path1, file_path2, num=0):
     with open(file_path1, "r") as f:
