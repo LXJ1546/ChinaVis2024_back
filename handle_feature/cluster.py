@@ -198,7 +198,7 @@ def add_cluster_feature(aindex):
             sub_dict = {
                 "submit": sub_list[0],
                 "active": sub_list[1],
-                "corret": sub_list[2],
+                "correct": sub_list[2],
                 "question": sub_list[3],
             }
             # 合并两个字典
