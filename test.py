@@ -20,31 +20,17 @@ def read_json(f_name):
     return (json.loads(content))
 
 
-df = pd.read_csv('./data/detail/aaa.csv')
+tags = read_json('data/cluster/time_cluster_label.json')
+result = {0: [], 1: [], 2: []}
+label = []
+for month in [9, 10, 11, 12, 1]:
+    # 工作日、休息日
+    for weekday in [1, 0]:
+        # 时间段
+        for period in ["Dawn", "Morning", "Afternoon", "Evening"]:
+            key = str(month) + "-" + str(weekday) + "-" + period
+            label.append(key)
+for i in range(len(tags)):
+    result[tags[i]].append(label[i])
 
-# 传入数据month,is_weekday,period
-month = 9
-is_weekday = 1
-period = 'Morning'
-tags = read_json('./data/cluster/student_tag_dict'+str(month)+'.json')
-
-data = df[(df['month'] == month) & (df['time_period'] == period)
-          & (df['is_weekday'] == is_weekday)].sort_values('date')
-
-date_group = data.groupby('date')
-# 根据日期进行分组，
-result = {}
-for g in date_group:
-    # 类型依次是针对、多样、尝试，012
-    # 十月标签顺序不一样要修改210
-    stu_group = g[1].groupby('student_ID')
-    sum_li = [0, 0, 0]
-    for student in stu_group:
-        if (month == 10):
-            tag = abs(tags[student[0]]-2)
-            sum_li[tag] = sum_li[tag]+1
-        else:
-            tag = tags[student[0]]
-            sum_li[tag] = sum_li[tag]+1
-    result[g[0]] = sum_li
 print(result)

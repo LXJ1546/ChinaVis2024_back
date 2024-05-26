@@ -1,6 +1,7 @@
 from flask import Flask, request
 from flask_cors import CORS
 import pandas as pd
+import numpy as np
 import os
 import re
 import json
@@ -74,7 +75,8 @@ def basicInfo():
             result_each.append(
                 [
                     "class" + str(i),
-                    master_file_class["all_knowledge"].mean(numeric_only=True).round(4),
+                    master_file_class["all_knowledge"].mean(
+                        numeric_only=True).round(4),
                     [high, mid, low],
                 ]
             )
@@ -107,11 +109,14 @@ def basicInfo():
 def titleMasterInfo():
     id = request.json.get("data")  # post
 
-    master_file = "./data/classes/title_master/student_master_title_" + str(id) + ".csv"
+    master_file = "./data/classes/title_master/student_master_title_" + \
+        str(id) + ".csv"
     score_file = (
-        "./data/classes/title_score_rate/student_master_title_" + str(id) + ".csv"
+        "./data/classes/title_score_rate/student_master_title_" +
+        str(id) + ".csv"
     )
-    correct_file = "./data/classes/correct_rate/correct_rate_class_" + str(id) + ".csv"
+    correct_file = "./data/classes/correct_rate/correct_rate_class_" + \
+        str(id) + ".csv"
 
     master_info = pd.read_csv(master_file).mean(numeric_only=True).round(4)
     score_info = pd.read_csv(score_file).mean(numeric_only=True).round(4)
@@ -207,13 +212,17 @@ def titleTimeMemoryInfo():
 
     re = {}
     time_dic = dict(
-        sorted(time_data[title].items(), key=lambda d: float(d[0]), reverse=False)
+        sorted(time_data[title].items(),
+               key=lambda d: float(d[0]), reverse=False)
     )
     memory_dic = dict(
-        sorted(memory_data[title].items(), key=lambda d: float(d[0]), reverse=False)
+        sorted(memory_data[title].items(),
+               key=lambda d: float(d[0]), reverse=False)
     )
-    re["time"] = {"keys": list(time_dic.keys()), "value": list(time_dic.values())}
-    re["memory"] = {"keys": list(memory_dic.keys()), "value": list(memory_dic.values())}
+    re["time"] = {"keys": list(time_dic.keys()),
+                  "value": list(time_dic.values())}
+    re["memory"] = {"keys": list(memory_dic.keys()),
+                    "value": list(memory_dic.values())}
 
     return re
 
@@ -256,7 +265,8 @@ def knowledgeMasterInfo():
     if id == "all":
         for i in range(1, 15):
             knowledge = pd.read_csv(store_file1 + str(i + 1) + ".csv")
-            df_knowledge = pd.concat([df_knowledge, knowledge], ignore_index=True)
+            df_knowledge = pd.concat(
+                [df_knowledge, knowledge], ignore_index=True)
 
             sub_knowledge = pd.read_csv(store_file2 + str(i + 1) + ".csv")
             df_sub_knowledge = pd.concat(
@@ -382,9 +392,11 @@ def learnCalendarInfo():
             result_status = date[1]["state"].value_counts(normalize=True)
             correct_rate = 0
             if "Absolutely_Correct" in result_status.index:
-                correct_rate = correct_rate + result_status["Absolutely_Correct"]
+                correct_rate = correct_rate + \
+                    result_status["Absolutely_Correct"]
             if "Partially_Correct" in result_status.index:
-                correct_rate = correct_rate + result_status["Partially_Correct"]
+                correct_rate = correct_rate + \
+                    result_status["Partially_Correct"]
             re[g[0]][str(date[0])].append(correct_rate)
             # 答题数
             title_num = len(date[1]["title_ID"].value_counts().index)
@@ -418,7 +430,8 @@ def personalSubmitInfo():
     student_id = request.json.get("data")  # 学生id列表
     learning_date = request.json.get("date")
     # 用时分布
-    title_timeconsume_count = read_json("./data/detail/title_timeconsume_count.json")
+    title_timeconsume_count = read_json(
+        "./data/detail/title_timeconsume_count.json")
     # 内存分布
     title_memory_count = read_json("./data/detail/title_memory_count.json")
 
@@ -439,12 +452,14 @@ def personalSubmitInfo():
             answer_state = row["state"]
             # 完全正确的用时内存分布
             if answer_state == "Absolutely_Correct":
-                total_correct_count = sum(title_timeconsume_count[g[0]].values())
+                total_correct_count = sum(
+                    title_timeconsume_count[g[0]].values())
                 # 用时
                 temp_sum = 0
                 for key in title_timeconsume_count[g[0]].keys():
                     if int(float(key)) <= int(row["timeconsume"]):
-                        temp_sum = temp_sum + title_timeconsume_count[g[0]][key]
+                        temp_sum = temp_sum + \
+                            title_timeconsume_count[g[0]][key]
                 timeconsume_rank_temp = temp_sum / total_correct_count
                 re["Q_" + g[0][9:12]][-1].append(timeconsume_rank_temp)
 
@@ -473,7 +488,7 @@ def personalSubmitInfo():
 @app.route("/featureStatisticsInfo", methods=["GET", "POST"])
 def featureStatisticsInfo():
     # 输入：month,10月修改顺序
-    month = request.json.get("data")  # 学生id列表
+    month = request.json.get("data")
     month_to = {9: 0, 10: 1, 11: 2, 12: 3, 1: 4}
     # 特征：提交次数、活跃天数、正确占比、题目数
     feature = read_json("./data/cluster/month_student_feature_new.json")[
@@ -508,7 +523,13 @@ def featureStatisticsInfo():
             for key in mid_re.keys():
                 final_re[i].append(mid_re[key][i])
     # print(final_re)
-    return final_re
+    new_final_re = {}
+    for key, value in final_re.items():
+        new_final_re[key] = []
+        for data in value:
+            new_final_re[key].append([min(data), np.percentile(
+                data, 25), np.median(data), np.percentile(data, 75), max(data)])
+    return new_final_re
 
 
 @app.route("/allPeriodInfo", methods=["GET", "POST"])
