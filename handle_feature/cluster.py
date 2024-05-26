@@ -161,6 +161,60 @@ def student_to_tag2(aindex):
     )
 
 
+# 给每个聚类的点加上他们的所有属性特征
+def add_cluster_feature(aindex):
+    month = 1
+    if aindex == 0:
+        month = 9
+    elif aindex == 1:
+        month = 10
+    elif aindex == 2:
+        month = 11
+    elif aindex == 3:
+        month = 12
+    elif aindex == 4:
+        month = 1
+    with open("data/temporary/month_student_feature.json", "r") as f:
+        big_list = json.load(f)
+    with open(f"data/cluster/cluster_features{month}.json", "r") as f:
+        cluster_features = json.load(f)
+    # 按学生ID字段对 DataFrame 进行排序
+    sorted_student_info_df = student_info_df.sort_values(by="student_ID")
+    # 提取所有学生的基本信息
+    student_basic = []
+    for _, row in sorted_student_info_df.iterrows():
+        student_info = {
+            "key": row["student_ID"],
+            "sex": row["sex"],
+            "age": row["age"],
+            "major": row["major"],
+        }
+        student_basic.append(student_info)
+    student_more_info = []
+    # 遍历某个月的列表，判断其是否不为0，是则放到other_ids中用于匹配标签
+    for index, sub_list in enumerate(big_list[aindex]):
+        if sum(sub_list) != 0:
+            # 直接指定固定的键名将子列表转换为字典
+            sub_dict = {
+                "submit": sub_list[0],
+                "active": sub_list[1],
+                "corret": sub_list[2],
+                "question": sub_list[3],
+            }
+            # 合并两个字典
+            merged_dict = {**student_basic[index], **sub_dict}
+            student_more_info.append(merged_dict)
+    # 使用列表推导式遍历两个大列表并添加坐标字段
+    new_dicts_list = [
+        {**d, "value": cluster_features[i]} for i, d in enumerate(student_more_info)
+    ]
+
+    save_to_json(
+        new_dicts_list,
+        f"data/abc/student_more_info{month}.json",
+    )
+
+
 # 计算模式转移的数量
 def mode_shift():
     with open("data/abc/student_tag_dict9.json", "r") as f:
@@ -227,3 +281,8 @@ def elbow():
 # student_to_tag2(3)
 # student_to_tag2(4)
 # mode_shift()
+add_cluster_feature(0)
+add_cluster_feature(1)
+add_cluster_feature(2)
+add_cluster_feature(3)
+add_cluster_feature(4)

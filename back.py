@@ -14,10 +14,10 @@ CORS(app)
 
 
 def read_json(f_name):
-    f = open(f_name, 'r')
+    f = open(f_name, "r")
     content = f.read()
     f.close()
-    return (json.loads(content))
+    return json.loads(content)
 
 
 @app.route("/back")
@@ -38,7 +38,7 @@ def basicInfo():
     data = pd.read_csv(file).sort_values(by="all_knowledge", ascending=False)
     result_each = []  # 每个学生分别的信息
     result_all = []  # 总的信息，比如每个专业的人数
-    if (id != 'all'):
+    if id != "all":
         for index, row in data.iterrows():
             result_each.append(
                 [
@@ -51,28 +51,33 @@ def basicInfo():
                 ]
             )
     else:
-        store_file = './data/classes/basic_info/basic_info_all.csv'
-        s = pd.read_csv(store_file)['all_knowledge']
+        store_file = "./data/classes/basic_info/basic_info_all.csv"
+        s = pd.read_csv(store_file)["all_knowledge"]
         # 获取30%和70%分位数对应的具体数值,实际上对应我需要的70%和30%
         percentiles = s.quantile([0.3, 0.7])
         # print(percentiles[0.3])
         # 分班级
-        master_file = './data/classes/basic_info/basic_info_'
+        master_file = "./data/classes/basic_info/basic_info_"
         for i in range(1, 16):
-            master_file_class = pd.read_csv(master_file+str(i)+'.csv')
+            master_file_class = pd.read_csv(master_file + str(i) + ".csv")
             # print(master_file_class['all_knowledge'].mean(numeric_only=True))
             high = 0
             mid = 0
             low = 0
-            for index, value in master_file_class['all_knowledge'].items():
-                if (value > percentiles[0.7]):
-                    high = high+1
-                elif (value <= percentiles[0.3]):
-                    low = low+1
+            for index, value in master_file_class["all_knowledge"].items():
+                if value > percentiles[0.7]:
+                    high = high + 1
+                elif value <= percentiles[0.3]:
+                    low = low + 1
                 else:
-                    mid = mid+1
+                    mid = mid + 1
             result_each.append(
-                ['class'+str(i), master_file_class['all_knowledge'].mean(numeric_only=True).round(4), [high, mid, low]])
+                [
+                    "class" + str(i),
+                    master_file_class["all_knowledge"].mean(numeric_only=True).round(4),
+                    [high, mid, low],
+                ]
+            )
         result_each = sorted(result_each, key=lambda x: x[1], reverse=True)
         result_each = [[x[0], str(x[1]), x[2]] for x in result_each]
         # print(result_each)
@@ -94,6 +99,7 @@ def basicInfo():
     result = [result_all, result_each]
     return result
 
+
 # 题目掌握程度
 
 
@@ -101,31 +107,42 @@ def basicInfo():
 def titleMasterInfo():
     id = request.json.get("data")  # post
 
-    master_file = './data/classes/title_master/student_master_title_' + \
-        str(id)+'.csv'
-    score_file = './data/classes/title_score_rate/student_master_title_' + \
-        str(id)+'.csv'
-    correct_file = './data/classes/correct_rate/correct_rate_class_' + \
-        str(id)+'.csv'
+    master_file = "./data/classes/title_master/student_master_title_" + str(id) + ".csv"
+    score_file = (
+        "./data/classes/title_score_rate/student_master_title_" + str(id) + ".csv"
+    )
+    correct_file = "./data/classes/correct_rate/correct_rate_class_" + str(id) + ".csv"
 
     master_info = pd.read_csv(master_file).mean(numeric_only=True).round(4)
     score_info = pd.read_csv(score_file).mean(numeric_only=True).round(4)
     correct_info = pd.read_csv(correct_file).mean(numeric_only=True).round(4)
     re = []
-    re.append({'name': '掌握程度',
-               'data': list(master_info.values),
-               'type': 'line',
-               'smooth': 'true'})
-    re.append({'name': '得分率',
-               'data': list(score_info.values),
-               'type': 'line',
-               'smooth': 'true'})
-    re.append({'name': '正确占比',
-               'data': list(correct_info.values),
-               'type': 'line',
-               'smooth': 'true'})
+    re.append(
+        {
+            "name": "掌握程度",
+            "data": list(master_info.values),
+            "type": "line",
+            "smooth": "true",
+        }
+    )
+    re.append(
+        {
+            "name": "得分率",
+            "data": list(score_info.values),
+            "type": "line",
+            "smooth": "true",
+        }
+    )
+    re.append(
+        {
+            "name": "正确占比",
+            "data": list(correct_info.values),
+            "type": "line",
+            "smooth": "true",
+        }
+    )
     # print(re)
-    return (re)
+    return re
 
 
 # 题目用时和内存分布
@@ -137,32 +154,68 @@ def titleTimeMemoryInfo():
     # print(data)  # prin
     data = request.json.get("name")  # post 这里应该获取到两个信息，班级和题目
 
-    titleTo = {'Q_bum': 'Question_bumGRTJ0c8p4v5D6eHZa', 'Q_62X': 'Question_62XbhBvJ8NUSnApgDL94', 'Q_ZTb': 'Question_ZTbD7mxr2OUp8Fz6iNjy', 'Q_FNg': 'Question_FNg8X9v5zcbB1tQrxHR3', 'Q_hZ5': 'Question_hZ5wXofebmTlzKB1jNcP', 'Q_xql': 'Question_xqlJkmRaP0otZcX4fK3W', 'Q_YWX': 'Question_YWXHr4G6Cl7bEm9iF2kQ', 'Q_X3w': 'Question_X3wF8QlTyi4mZkDp9Kae', 'Q_5fg': 'Question_5fgqjSBwTPG7KUV3it6O', 'Q_oCj': 'Question_oCjnFLbIs4Uxwek9rBpu', 'Q_EhV': 'Question_EhVPdmlB31M8WKGqL0wc', 'Q_Az7': 'Question_Az73sM0rHfWVKuc4X2kL', 'Q_Ou3': 'Question_Ou3f2Wt9BqExm5DpN7Zk', 'Q_UXq': 'Question_UXqN1F7G3Sbldz02vZne', 'Q_x2F': 'Question_x2Fy7rZ3SwYl9jMQkpOD', 'Q_Mh4': 'Question_Mh4CZIsrEfxkP1wXtOYV', 'Q_lU2': 'Question_lU2wvHSZq7m43xiVroBc', 'Q_Ej5': 'Question_Ej5mBw9rsOUKkFycGvz2', 'Q_pVK': 'Question_pVKXjZn0BkSwYcsa7C31',
-               'Q_QRm': 'Question_QRm48lXxzdP7Tn1WgNOf', 'Q_Jr4': 'Question_Jr4Wz5jLqmN01KUwHa7g', 'Q_7NJ': 'Question_7NJzCXUPcvQF4Mkfh9Wr', 'Q_n2B': 'Question_n2BTxIGw1Mc3Zo6RLdUe', 'Q_Nix': 'Question_NixCn84GdK2tySa5rB1V', 'Q_TmK': 'Question_TmKaGvfNoXYq4FZ2JrBu', 'Q_s6V': 'Question_s6VmP1G4UbEQWRYHK9Fd', 'Q_tgO': 'Question_tgOjrpZLw4RdVzQx85h6', 'Q_4nH': 'Question_4nHcauCQ0Y6Pm8DgKlLo', 'Q_6RQ': 'Question_6RQj2gF3OeK5AmDvThUV', 'Q_h7p': 'Question_h7pXNg80nJbw1C4kAPRm', 'Q_x2L': 'Question_x2L7AqbMuTjCwPFy6vNr', 'Q_3Mw': 'Question_3MwAFlmNO8EKrpY5zjUd', 'Q_3oP': 'Question_3oPyUzDmQtcMfLpGZ0jW', 'Q_rvB': 'Question_rvB9mVE6Kbd8jAY4NwPx', 'Q_BW0': 'Question_BW0ItEaymH3TkD6S15JF', 'Q_fZr': 'Question_fZrP3FJ4ebUogW9V7taS', 'Q_q7O': 'Question_q7OpB2zCMmW9wS8uNt3H', 'Q_VgK': 'Question_VgKw8PjY1FR6cm2QI9XW'}
+    titleTo = {
+        "Q_bum": "Question_bumGRTJ0c8p4v5D6eHZa",
+        "Q_62X": "Question_62XbhBvJ8NUSnApgDL94",
+        "Q_ZTb": "Question_ZTbD7mxr2OUp8Fz6iNjy",
+        "Q_FNg": "Question_FNg8X9v5zcbB1tQrxHR3",
+        "Q_hZ5": "Question_hZ5wXofebmTlzKB1jNcP",
+        "Q_xql": "Question_xqlJkmRaP0otZcX4fK3W",
+        "Q_YWX": "Question_YWXHr4G6Cl7bEm9iF2kQ",
+        "Q_X3w": "Question_X3wF8QlTyi4mZkDp9Kae",
+        "Q_5fg": "Question_5fgqjSBwTPG7KUV3it6O",
+        "Q_oCj": "Question_oCjnFLbIs4Uxwek9rBpu",
+        "Q_EhV": "Question_EhVPdmlB31M8WKGqL0wc",
+        "Q_Az7": "Question_Az73sM0rHfWVKuc4X2kL",
+        "Q_Ou3": "Question_Ou3f2Wt9BqExm5DpN7Zk",
+        "Q_UXq": "Question_UXqN1F7G3Sbldz02vZne",
+        "Q_x2F": "Question_x2Fy7rZ3SwYl9jMQkpOD",
+        "Q_Mh4": "Question_Mh4CZIsrEfxkP1wXtOYV",
+        "Q_lU2": "Question_lU2wvHSZq7m43xiVroBc",
+        "Q_Ej5": "Question_Ej5mBw9rsOUKkFycGvz2",
+        "Q_pVK": "Question_pVKXjZn0BkSwYcsa7C31",
+        "Q_QRm": "Question_QRm48lXxzdP7Tn1WgNOf",
+        "Q_Jr4": "Question_Jr4Wz5jLqmN01KUwHa7g",
+        "Q_7NJ": "Question_7NJzCXUPcvQF4Mkfh9Wr",
+        "Q_n2B": "Question_n2BTxIGw1Mc3Zo6RLdUe",
+        "Q_Nix": "Question_NixCn84GdK2tySa5rB1V",
+        "Q_TmK": "Question_TmKaGvfNoXYq4FZ2JrBu",
+        "Q_s6V": "Question_s6VmP1G4UbEQWRYHK9Fd",
+        "Q_tgO": "Question_tgOjrpZLw4RdVzQx85h6",
+        "Q_4nH": "Question_4nHcauCQ0Y6Pm8DgKlLo",
+        "Q_6RQ": "Question_6RQj2gF3OeK5AmDvThUV",
+        "Q_h7p": "Question_h7pXNg80nJbw1C4kAPRm",
+        "Q_x2L": "Question_x2L7AqbMuTjCwPFy6vNr",
+        "Q_3Mw": "Question_3MwAFlmNO8EKrpY5zjUd",
+        "Q_3oP": "Question_3oPyUzDmQtcMfLpGZ0jW",
+        "Q_rvB": "Question_rvB9mVE6Kbd8jAY4NwPx",
+        "Q_BW0": "Question_BW0ItEaymH3TkD6S15JF",
+        "Q_fZr": "Question_fZrP3FJ4ebUogW9V7taS",
+        "Q_q7O": "Question_q7OpB2zCMmW9wS8uNt3H",
+        "Q_VgK": "Question_VgKw8PjY1FR6cm2QI9XW",
+    }
 
     title = titleTo[data]
     # id = 1
     # title = 'Question_3MwAFlmNO8EKrpY5zjUd'
 
-    time_file = './data/classes/time_count/class_' + \
-        str(id)+'.json'
-    memory_file = './data/classes/memory_count/class_' + \
-        str(id)+'.json'
+    time_file = "./data/classes/time_count/class_" + str(id) + ".json"
+    memory_file = "./data/classes/memory_count/class_" + str(id) + ".json"
 
     memory_data = read_json(memory_file)
     time_data = read_json(time_file)
 
     re = {}
     time_dic = dict(
-        sorted(time_data[title].items(), key=lambda d: float(d[0]), reverse=False))
+        sorted(time_data[title].items(), key=lambda d: float(d[0]), reverse=False)
+    )
     memory_dic = dict(
-        sorted(memory_data[title].items(), key=lambda d: float(d[0]), reverse=False))
-    re['time'] = {'keys': list(time_dic.keys()),
-                  'value': list(time_dic.values())}
-    re['memory'] = {'keys': list(memory_dic.keys()),
-                    'value': list(memory_dic.values())}
+        sorted(memory_data[title].items(), key=lambda d: float(d[0]), reverse=False)
+    )
+    re["time"] = {"keys": list(time_dic.keys()), "value": list(time_dic.values())}
+    re["memory"] = {"keys": list(memory_dic.keys()), "value": list(memory_dic.values())}
 
-    return (re)
+    return re
 
 
 # 知识点
@@ -194,44 +247,45 @@ def knowledgeMasterInfo():
     df_sub_knowledge = pd.DataFrame()
     df_title = pd.DataFrame()
 
-    store_file1 = './data/knowledge/knowledge/student_master_knowledge_'
-    store_file2 = './data/knowledge/sub_knowledge/student_master_sub_knowledge_'
-    store_file3 = './data/knowledge/title_master/student_master_title_'
+    store_file1 = "./data/knowledge/knowledge/student_master_knowledge_"
+    store_file2 = "./data/knowledge/sub_knowledge/student_master_sub_knowledge_"
+    store_file3 = "./data/knowledge/title_master/student_master_title_"
 
-    store_title_score = './data/classes/correct_rate/correct_rate_class_'
+    store_title_score = "./data/classes/correct_rate/correct_rate_class_"
 
-    if (id == 'all'):
+    if id == "all":
         for i in range(1, 15):
-            knowledge = pd.read_csv(store_file1+str(i+1)+'.csv')
-            df_knowledge = pd.concat(
-                [df_knowledge, knowledge], ignore_index=True)
+            knowledge = pd.read_csv(store_file1 + str(i + 1) + ".csv")
+            df_knowledge = pd.concat([df_knowledge, knowledge], ignore_index=True)
 
-            sub_knowledge = pd.read_csv(store_file2+str(i+1)+'.csv')
+            sub_knowledge = pd.read_csv(store_file2 + str(i + 1) + ".csv")
             df_sub_knowledge = pd.concat(
-                [df_sub_knowledge, sub_knowledge], ignore_index=True)
+                [df_sub_knowledge, sub_knowledge], ignore_index=True
+            )
 
             # 题目得分率
-            if (title_value == 'score'):
-                title = pd.read_csv(store_title_score+str(i+1)+'.csv')
+            if title_value == "score":
+                title = pd.read_csv(store_title_score + str(i + 1) + ".csv")
                 df_title = pd.concat([df_title, title], ignore_index=True)
             # 题目掌握程度
             else:
-                title = pd.read_csv(store_file3+str(i+1)+'.csv')
+                title = pd.read_csv(store_file3 + str(i + 1) + ".csv")
                 df_title = pd.concat([df_title, title], ignore_index=True)
     else:
-        knowledge = pd.read_csv(store_file1+id+'.csv')
+        knowledge = pd.read_csv(store_file1 + id + ".csv")
         df_knowledge = pd.concat([df_knowledge, knowledge], ignore_index=True)
 
-        sub_knowledge = pd.read_csv(store_file2+id+'.csv')
+        sub_knowledge = pd.read_csv(store_file2 + id + ".csv")
         df_sub_knowledge = pd.concat(
-            [df_sub_knowledge, sub_knowledge], ignore_index=True)
+            [df_sub_knowledge, sub_knowledge], ignore_index=True
+        )
 
         # 题目得分率
-        if (title_value == 'score'):
-            title = pd.read_csv(store_title_score+id+'.csv')
+        if title_value == "score":
+            title = pd.read_csv(store_title_score + id + ".csv")
             df_title = pd.concat([df_title, title], ignore_index=True)
         else:
-            title = pd.read_csv(store_file3+id+'.csv')
+            title = pd.read_csv(store_file3 + id + ".csv")
             df_title = pd.concat([df_title, title], ignore_index=True)
 
     knowledge_mean = df_knowledge.mean(numeric_only=True).round(4)
@@ -240,39 +294,60 @@ def knowledgeMasterInfo():
 
     title_mean = df_title.mean(numeric_only=True).round(4)
     icon = {
-        'Question_q7OpB2zCMmW9wS8uNt3H': 0,
-        'Question_QRm48lXxzdP7Tn1WgNOf': 1,
-        'Question_pVKXjZn0BkSwYcsa7C31': 2,
-        'Question_lU2wvHSZq7m43xiVroBc': 3,
-        'Question_x2Fy7rZ3SwYl9jMQkpOD': 4,
-        'Question_oCjnFLbIs4Uxwek9rBpu': 5
+        "Question_q7OpB2zCMmW9wS8uNt3H": 0,
+        "Question_QRm48lXxzdP7Tn1WgNOf": 1,
+        "Question_pVKXjZn0BkSwYcsa7C31": 2,
+        "Question_lU2wvHSZq7m43xiVroBc": 3,
+        "Question_x2Fy7rZ3SwYl9jMQkpOD": 4,
+        "Question_oCjnFLbIs4Uxwek9rBpu": 5,
     }
 
-    file = './data/knowledge/Data_TitleInfo.csv'
+    file = "./data/knowledge/Data_TitleInfo.csv"
     title = pd.read_csv(file)
     re = []
-    knowledge_group = title.groupby('knowledge')
+    knowledge_group = title.groupby("knowledge")
     for knowledge in knowledge_group:
         # print(knowledge[0])
         re.append(
-            {'name': knowledge[0], 'score': knowledge_mean[knowledge[0]], 'children': []})
-        sub_knowledge_group = knowledge[1].groupby('sub_knowledge')
+            {
+                "name": knowledge[0],
+                "score": knowledge_mean[knowledge[0]],
+                "children": [],
+            }
+        )
+        sub_knowledge_group = knowledge[1].groupby("sub_knowledge")
         for sub_knowledge in sub_knowledge_group:
             # re[-1]表示该列表最后一个元素
-            re[-1]['children'].append({'name': sub_knowledge[0],
-                                       'score': sub_knowledge_mean[sub_knowledge[0]], 'children': []})
+            re[-1]["children"].append(
+                {
+                    "name": sub_knowledge[0],
+                    "score": sub_knowledge_mean[sub_knowledge[0]],
+                    "children": [],
+                }
+            )
             for index, row in sub_knowledge[1].iterrows():
                 # print(row)
-                if (row['title_ID'] in icon.keys()):
-                    re[-1]['children'][-1]['children'].append(
-                        {'name': row['title_ID'], 'score': title_mean[row['title_ID']], 'value': row['score'], 'icon': icon[row['title_ID']]})
+                if row["title_ID"] in icon.keys():
+                    re[-1]["children"][-1]["children"].append(
+                        {
+                            "name": row["title_ID"],
+                            "score": title_mean[row["title_ID"]],
+                            "value": row["score"],
+                            "icon": icon[row["title_ID"]],
+                        }
+                    )
                 else:
-                    re[-1]['children'][-1]['children'].append(
-                        {'name': row['title_ID'], 'score': title_mean[row['title_ID']], 'value': row['score']})
+                    re[-1]["children"][-1]["children"].append(
+                        {
+                            "name": row["title_ID"],
+                            "score": title_mean[row["title_ID"]],
+                            "value": row["score"],
+                        }
+                    )
     # print(re)
-    reInfo = {'name': 'Q1',
-              'children': re}
+    reInfo = {"name": "Q1", "children": re}
     return reInfo
+
 
 # 学习日历图
 
@@ -281,44 +356,48 @@ def knowledgeMasterInfo():
 def learnCalendarInfo():
     ids = request.json.get("data")  # 学生id列表
     month = request.json.get("month")
-    language = ['Method_Cj9Ya2R7fZd6xs1q5mNQ', 'Method_gj1NLb4Jn7URf9K2kQPd',
-                'Method_5Q4KoXthUuYz3bvrTDFm', 'Method_m8vwGkEZc3TSW2xqYUoR', 'Method_BXr9AIsPQhwNvyGdZL57']
+    language = [
+        "Method_Cj9Ya2R7fZd6xs1q5mNQ",
+        "Method_gj1NLb4Jn7URf9K2kQPd",
+        "Method_5Q4KoXthUuYz3bvrTDFm",
+        "Method_m8vwGkEZc3TSW2xqYUoR",
+        "Method_BXr9AIsPQhwNvyGdZL57",
+    ]
 
-    file = './data/detail/aaa.csv'
+    file = "./data/detail/aaa.csv"
     df = pd.read_csv(file)
-    students = df[df['student_ID'].isin(ids)]
-    students_m = students[students['month'] == month]
+    students = df[df["student_ID"].isin(ids)]
+    students_m = students[students["month"] == month]
 
     re = {}
     # print(students_m)
-    stu_group = students_m.groupby('student_ID')
+    stu_group = students_m.groupby("student_ID")
     for g in stu_group:
         re[g[0]] = {}
-        sort_g = g[1].sort_values('date')
-        date_g = sort_g.groupby('date')
+        sort_g = g[1].sort_values("date")
+        date_g = sort_g.groupby("date")
         for date in date_g:
             re[g[0]][str(date[0])] = []
             # 正确率
-            result_status = date[1]['state'].value_counts(
-                normalize=True)
+            result_status = date[1]["state"].value_counts(normalize=True)
             correct_rate = 0
-            if 'Absolutely_Correct' in result_status.index:
-                correct_rate = correct_rate+result_status['Absolutely_Correct']
-            if 'Partially_Correct' in result_status.index:
-                correct_rate = correct_rate+result_status['Partially_Correct']
+            if "Absolutely_Correct" in result_status.index:
+                correct_rate = correct_rate + result_status["Absolutely_Correct"]
+            if "Partially_Correct" in result_status.index:
+                correct_rate = correct_rate + result_status["Partially_Correct"]
             re[g[0]][str(date[0])].append(correct_rate)
             # 答题数
-            title_num = len(date[1]['title_ID'].value_counts().index)
+            title_num = len(date[1]["title_ID"].value_counts().index)
             re[g[0]][str(date[0])].append(title_num)
             # 语言
             all_counts = len(date[1])  # 总提交次数
 
             temp = []
-            all_language = date[1].value_counts('method')
+            all_language = date[1].value_counts("method")
             for lan in language:
                 # 判断语言是否存在
                 if lan in all_language.index:
-                    temp.append(all_language[lan]/all_counts)
+                    temp.append(all_language[lan] / all_counts)
                 else:
                     temp.append(0)
             re[g[0]][str(date[0])].append(temp)
@@ -328,7 +407,8 @@ def learnCalendarInfo():
 
         # print(sort_g)
     # print(re)
-    return (re)
+    return re
+
 
 # 个人提交图
 
@@ -338,61 +418,56 @@ def personalSubmitInfo():
     student_id = request.json.get("data")  # 学生id列表
     learning_date = request.json.get("date")
     # 用时分布
-    title_timeconsume_count = read_json(
-        './data/detail/title_timeconsume_count.json')
+    title_timeconsume_count = read_json("./data/detail/title_timeconsume_count.json")
     # 内存分布
-    title_memory_count = read_json(
-        './data/detail/title_memory_count.json')
+    title_memory_count = read_json("./data/detail/title_memory_count.json")
 
-    file = './data/detail/aaa.csv'
+    file = "./data/detail/aaa.csv"
     df = pd.read_csv(file)
-    info = df[(df['student_ID'] == student_id) & (df['date'] == learning_date)]
+    info = df[(df["student_ID"] == student_id) & (df["date"] == learning_date)]
     # print(info)
-    title_g = info.groupby('title_ID')
+    title_g = info.groupby("title_ID")
     re = {}
     # 按题目分组
     for g in title_g:
-        re['Q_'+g[0][9:12]] = []
-        sort_g = g[1].sort_values('time')
+        re["Q_" + g[0][9:12]] = []
+        sort_g = g[1].sort_values("time")
         # print('------------', '\n', sort_g)
         # 对每次提交依次处理
         for index, row in sort_g.iterrows():
-            re['Q_'+g[0][9:12]].append([])
-            answer_state = row['state']
+            re["Q_" + g[0][9:12]].append([])
+            answer_state = row["state"]
             # 完全正确的用时内存分布
-            if (answer_state == 'Absolutely_Correct'):
-                total_correct_count = sum(
-                    title_timeconsume_count[g[0]].values())
+            if answer_state == "Absolutely_Correct":
+                total_correct_count = sum(title_timeconsume_count[g[0]].values())
                 # 用时
                 temp_sum = 0
                 for key in title_timeconsume_count[g[0]].keys():
-                    if (int(float(key)) <= int(row['timeconsume'])):
-                        temp_sum = temp_sum + \
-                            title_timeconsume_count[g[0]][key]
-                timeconsume_rank_temp = temp_sum/total_correct_count
-                re['Q_'+g[0][9:12]][-1].append(timeconsume_rank_temp)
+                    if int(float(key)) <= int(row["timeconsume"]):
+                        temp_sum = temp_sum + title_timeconsume_count[g[0]][key]
+                timeconsume_rank_temp = temp_sum / total_correct_count
+                re["Q_" + g[0][9:12]][-1].append(timeconsume_rank_temp)
 
                 temp_sum = 0
                 # 内存
                 for key in title_memory_count[g[0]].keys():
-                    if (int(key) <= int(row['memory'])):
-                        temp_sum = temp_sum + \
-                            title_memory_count[g[0]][key]
-                memory_rank_temp = temp_sum/total_correct_count
-                re['Q_'+g[0][9:12]][-1].append(memory_rank_temp)
+                    if int(key) <= int(row["memory"]):
+                        temp_sum = temp_sum + title_memory_count[g[0]][key]
+                memory_rank_temp = temp_sum / total_correct_count
+                re["Q_" + g[0][9:12]][-1].append(memory_rank_temp)
             else:
-                re['Q_'+g[0][9:12]][-1].append(1)
-                re['Q_'+g[0][9:12]][-1].append(1)
+                re["Q_" + g[0][9:12]][-1].append(1)
+                re["Q_" + g[0][9:12]][-1].append(1)
 
             # 答题状态
-            re['Q_'+g[0][9:12]][-1].append(answer_state)
+            re["Q_" + g[0][9:12]][-1].append(answer_state)
             # 方法
-            re['Q_'+g[0][9:12]][-1].append(row['method'][0:8])
+            re["Q_" + g[0][9:12]][-1].append(row["method"][0:8])
             # 提交时间
-            re['Q_'+g[0][9:12]][-1].append(row['time'])
+            re["Q_" + g[0][9:12]][-1].append(row["time"])
 
     # print(re)
-    return (re)
+    return re
 
 
 @app.route("/featureStatisticsInfo", methods=["GET", "POST"])
@@ -401,16 +476,17 @@ def featureStatisticsInfo():
     month = request.json.get("data")  # 学生id列表
     month_to = {9: 0, 10: 1, 11: 2, 12: 3, 1: 4}
     # 特征：提交次数、活跃天数、正确占比、题目数
-    feature = read_json(
-        './data/cluster/month_student_feature_new.json')[month_to[month]]
-    tags = read_json('data/cluster/cluster_label'+str(month)+'.json')
+    feature = read_json("./data/cluster/month_student_feature_new.json")[
+        month_to[month]
+    ]
+    tags = read_json("data/cluster/cluster_label" + str(month) + ".json")
 
     result = {0: [], 1: [], 2: []}
     for i in range(len(tags)):
         result[tags[i]].append(feature[i])
 
     # 其他月的分类：针对、多样、尝试
-    feature_name = ['提交次数', '活跃天数', '正确占比', '答题数']
+    feature_name = ["提交次数", "活跃天数", "正确占比", "答题数"]
     # print(result)
 
     mid_re = {}
@@ -424,7 +500,7 @@ def featureStatisticsInfo():
     for i in feature_name:
         final_re[i] = []
         # 十月的标签顺序需要修改
-        if (month == 10):
+        if month == 10:
             for key in [2, 1, 0]:
                 final_re[i].append(mid_re[key][i])
         # 不是十月
@@ -432,47 +508,50 @@ def featureStatisticsInfo():
             for key in mid_re.keys():
                 final_re[i].append(mid_re[key][i])
     # print(final_re)
-    return (final_re)
+    return final_re
 
 
 @app.route("/allPeriodInfo", methods=["GET", "POST"])
 def allPeriodInfo():
     total_student = 1364
-    features = read_json('./data/cluster/time_cluster_original_feature.json')
+    features = read_json("./data/cluster/time_cluster_original_feature.json")
 
     label = []
     for month in [9, 10, 11, 12, 1]:
         # 工作日、休息日
         for weekday in [1, 0]:
             # 时间段
-            for period in ['Dawn', 'Morning', 'Afternoon', 'Evening']:
-                key = str(month)+'-'+str(weekday)+'-'+period
+            for period in ["Dawn", "Morning", "Afternoon", "Evening"]:
+                key = str(month) + "-" + str(weekday) + "-" + period
                 label.append(key)
 
     result = {}
 
     # 时间段
-    pattern1 = r'\d+-([A-Za-z]+)'
+    pattern1 = r"\d+-([A-Za-z]+)"
     # 月份
-    pattern2 = r'(\d+)'
+    pattern2 = r"(\d+)"
     for i in range(len(features)):
         period = re.search(pattern1, label[i]).group(0)
         month = re.search(pattern2, label[i]).group(0)
         if period not in result:
             result[period] = {}
 
-        result[period][int(month)] = [features[i][0]*total_student,
-                                      features[i][1]*total_student, features[i][-1]]
+        result[period][int(month)] = [
+            features[i][0] * total_student,
+            features[i][1] * total_student,
+            features[i][-1],
+        ]
     # print(result)
 
     final_re = {}
-    to_1 = {'0': '休息日', '1': '工作日'}
-    to_2 = {'Dawn': '凌晨', 'Morning': '上午', 'Afternoon': '下午', 'Evening': '晚上'}
+    to_1 = {"0": "休息日", "1": "工作日"}
+    to_2 = {"Dawn": "凌晨", "Morning": "上午", "Afternoon": "下午", "Evening": "晚上"}
     for key, value in result.items():
-        key_list = key.split('-')
-        final_re[to_2[key_list[1]]+'-'+to_1[key_list[0]]] = value
+        key_list = key.split("-")
+        final_re[to_2[key_list[1]] + "-" + to_1[key_list[0]]] = value
     # print(final_re)
-    return (final_re)
+    return final_re
 
 
 # 协助获取聚类所需的坐标数据以及对应的标签数据
@@ -484,6 +563,19 @@ def group_cluster_data(file_path1, file_path2, num=0):
     grouped_data = [[], [], []]
     # 将坐标与标签对应起来
     for index, features in enumerate(cluster_features):
+        if num != -1:
+            if cluster_label[index] == 0:
+                if num == 10:
+                    features["label"] = "尝试型"
+                else:
+                    features["label"] = "针对型"
+            elif cluster_label[index] == 1:
+                features["label"] = "多样型"
+            elif cluster_label[index] == 2:
+                if num == 10:
+                    features["label"] = "针对型"
+                else:
+                    features["label"] = "尝试型"
         grouped_data[cluster_label[index]].append(features)
     # 10是特殊情况
     if num == 10:
@@ -495,15 +587,15 @@ def group_cluster_data(file_path1, file_path2, num=0):
 # 聚类数据
 @app.route("/clusterData")
 def cluster_data():
-    feature_path9 = "data/cluster/cluster_features9.json"
+    feature_path9 = "data/cluster/student_more_info9.json"
     label_path9 = "data/cluster/cluster_label9.json"
-    feature_path10 = "data/cluster/cluster_features10.json"
+    feature_path10 = "data/cluster/student_more_info10.json"
     label_path10 = "data/cluster/cluster_label10.json"
-    feature_path11 = "data/cluster/cluster_features11.json"
+    feature_path11 = "data/cluster/student_more_info11.json"
     label_path11 = "data/cluster/cluster_label11.json"
-    feature_path12 = "data/cluster/cluster_features12.json"
+    feature_path12 = "data/cluster/student_more_info12.json"
     label_path12 = "data/cluster/cluster_label12.json"
-    feature_path1 = "data/cluster/cluster_features1.json"
+    feature_path1 = "data/cluster/student_more_info1.json"
     label_path1 = "data/cluster/cluster_label1.json"
     time_feature_path = "data/cluster/time_cluster_features.json"
     time_label_path = "data/cluster/time_cluster_label.json"
@@ -512,7 +604,7 @@ def cluster_data():
     c = group_cluster_data(feature_path11, label_path11)
     d = group_cluster_data(feature_path12, label_path12)
     e = group_cluster_data(feature_path1, label_path1)
-    f = group_cluster_data(time_feature_path, time_label_path)
+    f = group_cluster_data(time_feature_path, time_label_path, -1)
     merged_data = [a, b, c, d, e, f]
     return merged_data
 
