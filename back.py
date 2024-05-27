@@ -608,8 +608,44 @@ def onePeriodInfo():
     # print(result)
     return (result)
 
+# 时间模式下，右下3图，对学生分类后的分析
+
+
+@app.route("/timeStudentInfo", methods=["GET", "POST"])
+def timeStudentInfo():
+    feature = request.json.get("data")
+
+    # feature = '活跃天数'
+    feature_to = {'提交次数': 0, '活跃天数': 1, '题目数': 2}
+    feature_label = feature_to[feature]
+    data = read_json('./data/detail/time_cluster_student_analysis.json')
+    result = {}
+    for key, value in data.items():
+        result[key] = []
+        for stu in ['top', 'mid', 'low']:
+            result[key].append(value[stu][feature_label])
+
+    result2 = {'top': [
+        result['高峰型'][0],
+        result['平均型'][0],
+        result['低峰型'][0]
+    ],
+        'mid': [
+        result['高峰型'][1],
+        result['平均型'][1],
+        result['低峰型'][1]
+    ],
+        'low': [
+        result['高峰型'][2],
+        result['平均型'][2],
+        result['低峰型'][2]
+    ]}
+
+    return ([result, result2])
 
 # 协助获取聚类所需的坐标数据以及对应的标签数据
+
+
 def group_cluster_data(file_path1, file_path2, num=0):
     with open(file_path1, "r") as f:
         cluster_features = json.load(f)
