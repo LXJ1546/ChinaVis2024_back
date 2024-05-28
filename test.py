@@ -20,17 +20,28 @@ def read_json(f_name):
     return (json.loads(content))
 
 
-tags = read_json('data/cluster/time_cluster_label.json')
-result = {0: [], 1: [], 2: []}
-label = []
-for month in [9, 10, 11, 12, 1]:
-    # 工作日、休息日
-    for weekday in [1, 0]:
-        # 时间段
-        for period in ["Dawn", "Morning", "Afternoon", "Evening"]:
-            key = str(month) + "-" + str(weekday) + "-" + period
-            label.append(key)
-for i in range(len(tags)):
-    result[tags[i]].append(label[i])
+def write_dict_to_json(file_path, data):
+    # 将字典写入 JSON 文件
+    with open(file_path, 'w') as json_file:
+        json.dump(data, json_file, indent=4)
 
-print(result)
+
+f1 = './data/cluster/student_more_info'
+f2 = './data/knowledge/month_knowledge/student_master_knowledge_'
+store = 'data/new/student_more_info'
+
+for month in [9, 10, 11, 12, 1]:
+    print(month)
+    f1_n = f1+str(month)+'.json'
+    f2_n = f2+str(month)+'.csv'
+    store_n = store+str(month)+'.json'
+    json_data = read_json(f1_n)
+    csv_data = pd.read_csv(f2_n)
+    # print(csv_data)
+
+    for item in json_data:
+        master = csv_data[csv_data['Unnamed: 0']
+                          == item['key']]['all_knowledge'].to_list()[0]
+        item['master'] = master
+    # print(json_data)
+    write_dict_to_json(store_n, json_data)
