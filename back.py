@@ -506,8 +506,26 @@ def featureStatisticsInfo():
         tags = read_json("data/cluster/time_cluster_label.json")
         for i in range(len(tags)):
             result[tags[i]].append(
-                [feature[i][0], feature[i][1], feature[i][3], feature[i][2]]
+                [feature[i][0], feature[i][1], feature[i]
+                    [3], feature[i][2], feature[i][4]]
             )
+
+            # 其他月的分类：针对、多样、尝试
+        feature_name = ["提交次数", "活跃天数", "正确占比", "答题数", "答题人数"]
+        # print(result)
+
+        mid_re = {}
+        for key in result.keys():
+            mid_re[key] = {}
+            for i in range(len(feature_name)):
+                mid_re[key][feature_name[i]] = [row[i] for row in result[key]]
+        # print(mid_re)
+
+        final_re = {}
+        for i in feature_name:
+            final_re[i] = []
+            for key in mid_re.keys():
+                final_re[i].append(mid_re[key][i])
 
     else:
         # 特征：提交次数、活跃天数、正确占比、题目数
@@ -519,28 +537,29 @@ def featureStatisticsInfo():
         for i in range(len(tags)):
             result[tags[i]].append(feature[i])
 
-    # 其他月的分类：针对、多样、尝试
-    feature_name = ["提交次数", "活跃天数", "正确占比", "答题数"]
-    # print(result)
+        # 其他月的分类：针对、多样、尝试
+        feature_name = ["提交次数", "活跃天数", "正确占比", "答题数"]
+        # print(result)
 
-    mid_re = {}
-    for key in result.keys():
-        mid_re[key] = {}
-        for i in range(len(feature_name)):
-            mid_re[key][feature_name[i]] = [row[i] for row in result[key]]
-    # print(mid_re)
+        mid_re = {}
+        for key in result.keys():
+            mid_re[key] = {}
+            for i in range(len(feature_name)):
+                mid_re[key][feature_name[i]] = [row[i] for row in result[key]]
+        # print(mid_re)
 
-    final_re = {}
-    for i in feature_name:
-        final_re[i] = []
-        # 十月的标签顺序需要修改
-        if month == 10:
-            for key in [2, 1, 0]:
-                final_re[i].append(mid_re[key][i])
-        # 不是十月
-        else:
-            for key in mid_re.keys():
-                final_re[i].append(mid_re[key][i])
+        final_re = {}
+        for i in feature_name:
+            final_re[i] = []
+            # 十月的标签顺序需要修改
+            if month == 10:
+                for key in [2, 1, 0]:
+                    final_re[i].append(mid_re[key][i])
+            # 不是十月
+            else:
+                for key in mid_re.keys():
+                    final_re[i].append(mid_re[key][i])
+
     # print(final_re)
     new_final_re = {}
     for key, value in final_re.items():
