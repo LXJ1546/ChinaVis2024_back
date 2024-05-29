@@ -604,6 +604,7 @@ def onePeriodInfo():
     # print(result)
     return result
 
+
 # 时间模式下，右下3图，对学生分类后的分析
 
 
@@ -612,32 +613,23 @@ def timeStudentInfo():
     feature = request.json.get("data")
 
     # feature = '活跃天数'
-    feature_to = {'提交次数': 0, '活跃天数': 1, '题目数': 2}
+    feature_to = {"提交次数": 0, "活跃天数": 1, "题目数": 2}
     feature_label = feature_to[feature]
-    data = read_json('./data/detail/time_cluster_student_analysis.json')
+    data = read_json("./data/detail/time_cluster_student_analysis.json")
     result = {}
     for key, value in data.items():
         result[key] = []
-        for stu in ['top', 'mid', 'low']:
+        for stu in ["top", "mid", "low"]:
             result[key].append(value[stu][feature_label])
 
-    result2 = {'top': [
-        result['高峰型'][0],
-        result['平均型'][0],
-        result['低峰型'][0]
-    ],
-        'mid': [
-        result['高峰型'][1],
-        result['平均型'][1],
-        result['低峰型'][1]
-    ],
-        'low': [
-        result['高峰型'][2],
-        result['平均型'][2],
-        result['低峰型'][2]
-    ]}
+    result2 = {
+        "top": [result["高峰型"][0], result["平均型"][0], result["低峰型"][0]],
+        "mid": [result["高峰型"][1], result["平均型"][1], result["低峰型"][1]],
+        "low": [result["高峰型"][2], result["平均型"][2], result["低峰型"][2]],
+    }
 
-    return ([result, result2])
+    return [result, result2]
+
 
 # 协助获取聚类所需的坐标数据以及对应的标签数据
 
@@ -663,6 +655,14 @@ def group_cluster_data(file_path1, file_path2, num=0):
                     features["label"] = "针对型"
                 else:
                     features["label"] = "尝试型"
+        else:
+            # 时间模式下加标签
+            if cluster_label[index] == 0:
+                features["label"] = "高峰型"
+            elif cluster_label[index] == 1:
+                features["label"] = "低峰型"
+            elif cluster_label[index] == 2:
+                features["label"] = "平均型"
         grouped_data[cluster_label[index]].append(features)
     # 10是特殊情况
     if num == 10:
@@ -684,7 +684,7 @@ def cluster_data():
     label_path12 = "data/cluster/cluster_label12.json"
     feature_path1 = "data/cluster/student_more_info1.json"
     label_path1 = "data/cluster/cluster_label1.json"
-    time_feature_path = "data/cluster/time_cluster_features.json"
+    time_feature_path = "data/cluster/time_feature_merge.json"
     time_label_path = "data/cluster/time_cluster_label.json"
     a = group_cluster_data(feature_path9, label_path9)
     b = group_cluster_data(feature_path10, label_path10, 10)

@@ -215,6 +215,22 @@ def add_cluster_feature(aindex):
     )
 
 
+# 给时间特征加上对应的坐标信息
+def time_feature_merge():
+    with open(f"data/cluster/time_feature.json", "r") as f:
+        time_feature = json.load(f)
+    with open(f"data/cluster/time_cluster_coordinates.json", "r") as f:
+        time_cluster_coordinates = json.load(f)
+    # 使用列表推导式遍历两个大列表并添加坐标字段
+    new_dicts_list = [
+        {**d, "value": time_cluster_coordinates[i]} for i, d in enumerate(time_feature)
+    ]
+    save_to_json(
+        new_dicts_list,
+        f"data/cluster/time_feature_merge.json",
+    )
+
+
 # 计算模式转移的数量
 def mode_shift():
     with open("data/abc/student_tag_dict9.json", "r") as f:
@@ -401,4 +417,5 @@ def calculate_accuracy():
 # add_cluster_feature(3)
 # add_cluster_feature(4)
 # month_question_submit()
-calculate_accuracy()
+# calculate_accuracy()
+time_feature_merge()
