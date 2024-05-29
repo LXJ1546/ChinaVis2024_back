@@ -415,7 +415,7 @@ def learnCalendarInfo():
             re[g[0]][str(date[0])].append(temp)
 
             # 提交次数
-            re[g[0]][str(date[0])].append(all_counts)
+            re[g[0]][str(date[0])].append(all_counts/title_num)
 
         # print(sort_g)
     # print(re)
