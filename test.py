@@ -26,31 +26,19 @@ def write_dict_to_json(file_path, data):
         json.dump(data, json_file, indent=4)
 
 
-f1 = './data/cluster/student_more_info'
-# f2 = './data/knowledge/month_knowledge/student_master_knowledge_'
-store = 'data/new/student_more_info'
-top_low = read_json('data/detail/student_top_low.json')
+time_feature = read_json('data/cluster/time_cluster_original_feature.json')
 
-stu_top = {}
-for key, value in top_low.items():
-    for stu in value:
-        stu_top[stu] = key
-# print(stu_top)
-
-for month in [9, 10, 11, 12, 1]:
-    print(month)
-    f1_n = f1+str(month)+'.json'
-    # f2_n = f2+str(month)+'.csv'
-    store_n = store+str(month)+'.json'
-    json_data = read_json(f1_n)
-    # csv_data = pd.read_csv(f2_n)
-    # print(csv_data)
-
-    for item in json_data:
-        # master = csv_data[csv_data['Unnamed: 0']
-        #                   == item['key']]['all_knowledge'].to_list()[0]
-        # item['master'] = master
-        rank = stu_top[item['key']]
-        item['rank'] = rank
-    # print(json_data)
-    write_dict_to_json(store_n, json_data)
+result = []
+# [提交次数，活跃天数，题目数，正确率，学生人数]
+i = 0
+for month in ['9月', '10月', '11月', '12月', '1月']:
+    # 工作日、休息日
+    for weekday in ['工作日', '休息日']:
+        # 时间段
+        for period in ['凌晨', '上午', '下午', '晚上']:
+            temp = {'key': month+weekday+period,
+                    'submit': time_feature[i][0], 'active': time_feature[i][1], 'title': time_feature[i][2], 'correct': time_feature[i][3], 'students_num': time_feature[i][4]}
+            result.append(temp)
+            i = i+1
+# print(result)
+write_dict_to_json('./data/new/time_feature.json', result)
