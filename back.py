@@ -75,8 +75,7 @@ def basicInfo():
             result_each.append(
                 [
                     "class" + str(i),
-                    master_file_class["all_knowledge"].mean(
-                        numeric_only=True).round(4),
+                    master_file_class["all_knowledge"].mean(numeric_only=True).round(4),
                     [high, mid, low],
                 ]
             )
@@ -109,14 +108,11 @@ def basicInfo():
 def titleMasterInfo():
     id = request.json.get("data")  # post
 
-    master_file = "./data/classes/title_master/student_master_title_" + \
-        str(id) + ".csv"
+    master_file = "./data/classes/title_master/student_master_title_" + str(id) + ".csv"
     score_file = (
-        "./data/classes/title_score_rate/student_master_title_" +
-        str(id) + ".csv"
+        "./data/classes/title_score_rate/student_master_title_" + str(id) + ".csv"
     )
-    correct_file = "./data/classes/correct_rate/correct_rate_class_" + \
-        str(id) + ".csv"
+    correct_file = "./data/classes/correct_rate/correct_rate_class_" + str(id) + ".csv"
 
     master_info = pd.read_csv(master_file).mean(numeric_only=True).round(4)
     score_info = pd.read_csv(score_file).mean(numeric_only=True).round(4)
@@ -212,17 +208,13 @@ def titleTimeMemoryInfo():
 
     re = {}
     time_dic = dict(
-        sorted(time_data[title].items(),
-               key=lambda d: float(d[0]), reverse=False)
+        sorted(time_data[title].items(), key=lambda d: float(d[0]), reverse=False)
     )
     memory_dic = dict(
-        sorted(memory_data[title].items(),
-               key=lambda d: float(d[0]), reverse=False)
+        sorted(memory_data[title].items(), key=lambda d: float(d[0]), reverse=False)
     )
-    re["time"] = {"keys": list(time_dic.keys()),
-                  "value": list(time_dic.values())}
-    re["memory"] = {"keys": list(memory_dic.keys()),
-                    "value": list(memory_dic.values())}
+    re["time"] = {"keys": list(time_dic.keys()), "value": list(time_dic.values())}
+    re["memory"] = {"keys": list(memory_dic.keys()), "value": list(memory_dic.values())}
 
     return re
 
@@ -265,8 +257,7 @@ def knowledgeMasterInfo():
     if id == "all":
         for i in range(1, 15):
             knowledge = pd.read_csv(store_file1 + str(i + 1) + ".csv")
-            df_knowledge = pd.concat(
-                [df_knowledge, knowledge], ignore_index=True)
+            df_knowledge = pd.concat([df_knowledge, knowledge], ignore_index=True)
 
             sub_knowledge = pd.read_csv(store_file2 + str(i + 1) + ".csv")
             df_sub_knowledge = pd.concat(
@@ -392,11 +383,9 @@ def learnCalendarInfo():
             result_status = date[1]["state"].value_counts(normalize=True)
             correct_rate = 0
             if "Absolutely_Correct" in result_status.index:
-                correct_rate = correct_rate + \
-                    result_status["Absolutely_Correct"]
+                correct_rate = correct_rate + result_status["Absolutely_Correct"]
             if "Partially_Correct" in result_status.index:
-                correct_rate = correct_rate + \
-                    result_status["Partially_Correct"]
+                correct_rate = correct_rate + result_status["Partially_Correct"]
             re[g[0]][str(date[0])].append(correct_rate)
             # 答题数
             title_num = len(date[1]["title_ID"].value_counts().index)
@@ -430,8 +419,7 @@ def personalSubmitInfo():
     student_id = request.json.get("data")  # 学生id列表
     learning_date = request.json.get("date")
     # 用时分布
-    title_timeconsume_count = read_json(
-        "./data/detail/title_timeconsume_count.json")
+    title_timeconsume_count = read_json("./data/detail/title_timeconsume_count.json")
     # 内存分布
     title_memory_count = read_json("./data/detail/title_memory_count.json")
 
@@ -452,14 +440,12 @@ def personalSubmitInfo():
             answer_state = row["state"]
             # 完全正确的用时内存分布
             if answer_state == "Absolutely_Correct":
-                total_correct_count = sum(
-                    title_timeconsume_count[g[0]].values())
+                total_correct_count = sum(title_timeconsume_count[g[0]].values())
                 # 用时
                 temp_sum = 0
                 for key in title_timeconsume_count[g[0]].keys():
                     if int(float(key)) <= int(row["timeconsume"]):
-                        temp_sum = temp_sum + \
-                            title_timeconsume_count[g[0]][key]
+                        temp_sum = temp_sum + title_timeconsume_count[g[0]][key]
                 timeconsume_rank_temp = temp_sum / total_correct_count
                 re["Q_" + g[0][9:12]][-1].append(timeconsume_rank_temp)
 
@@ -538,8 +524,15 @@ def featureStatisticsInfo():
     for key, value in final_re.items():
         new_final_re[key] = []
         for data in value:
-            new_final_re[key].append([min(data), np.percentile(
-                data, 25), np.median(data), np.percentile(data, 75), max(data)])
+            new_final_re[key].append(
+                [
+                    min(data),
+                    np.percentile(data, 25),
+                    np.median(data),
+                    np.percentile(data, 75),
+                    max(data),
+                ]
+            )
     return new_final_re
 
 
@@ -594,30 +587,34 @@ def onePeriodInfo():
     is_weekday = request.json.get("is_weekday")
     period = request.json.get("period")
 
-    df = pd.read_csv('./data/detail/aaa.csv')
-    tags = read_json('./data/cluster/student_tag_dict'+str(month)+'.json')
+    df = pd.read_csv("./data/detail/aaa.csv")
+    tags = read_json("./data/cluster/student_tag_dict" + str(month) + ".json")
 
-    data = df[(df['month'] == month) & (df['time_period'] == period)
-              & (df['is_weekday'] == is_weekday)].sort_values('date')
+    data = df[
+        (df["month"] == month)
+        & (df["time_period"] == period)
+        & (df["is_weekday"] == is_weekday)
+    ].sort_values("date")
 
-    date_group = data.groupby('date')
+    date_group = data.groupby("date")
     # 根据日期进行分组，
     result = {}
     for g in date_group:
         # 类型依次是针对、多样、尝试，012
         # 十月标签顺序不一样要修改210
-        stu_group = g[1].groupby('student_ID')
+        stu_group = g[1].groupby("student_ID")
         sum_li = [0, 0, 0]
         for student in stu_group:
-            if (month == 10):
-                tag = abs(tags[student[0]]-2)
-                sum_li[tag] = sum_li[tag]+1
+            if month == 10:
+                tag = abs(tags[student[0]] - 2)
+                sum_li[tag] = sum_li[tag] + 1
             else:
                 tag = tags[student[0]]
-                sum_li[tag] = sum_li[tag]+1
+                sum_li[tag] = sum_li[tag] + 1
         result[g[0]] = sum_li
     # print(result)
-    return (result)
+    return result
+
 
 # 时间模式下，右下3图，对学生分类后的分析
 
@@ -627,32 +624,23 @@ def timeStudentInfo():
     feature = request.json.get("data")
 
     # feature = '活跃天数'
-    feature_to = {'提交次数': 0, '活跃天数': 1, '题目数': 2}
+    feature_to = {"提交次数": 0, "活跃天数": 1, "题目数": 2}
     feature_label = feature_to[feature]
-    data = read_json('./data/detail/time_cluster_student_analysis.json')
+    data = read_json("./data/detail/time_cluster_student_analysis.json")
     result = {}
     for key, value in data.items():
         result[key] = []
-        for stu in ['top', 'mid', 'low']:
+        for stu in ["top", "mid", "low"]:
             result[key].append(value[stu][feature_label])
 
-    result2 = {'top': [
-        result['高峰型'][0],
-        result['平均型'][0],
-        result['低峰型'][0]
-    ],
-        'mid': [
-        result['高峰型'][1],
-        result['平均型'][1],
-        result['低峰型'][1]
-    ],
-        'low': [
-        result['高峰型'][2],
-        result['平均型'][2],
-        result['低峰型'][2]
-    ]}
+    result2 = {
+        "top": [result["高峰型"][0], result["平均型"][0], result["低峰型"][0]],
+        "mid": [result["高峰型"][1], result["平均型"][1], result["低峰型"][1]],
+        "low": [result["高峰型"][2], result["平均型"][2], result["低峰型"][2]],
+    }
 
-    return ([result, result2])
+    return [result, result2]
+
 
 # 协助获取聚类所需的坐标数据以及对应的标签数据
 
@@ -678,6 +666,14 @@ def group_cluster_data(file_path1, file_path2, num=0):
                     features["label"] = "针对型"
                 else:
                     features["label"] = "尝试型"
+        else:
+            # 时间模式下加标签
+            if cluster_label[index] == 0:
+                features["label"] = "高峰型"
+            elif cluster_label[index] == 1:
+                features["label"] = "低峰型"
+            elif cluster_label[index] == 2:
+                features["label"] = "平均型"
         grouped_data[cluster_label[index]].append(features)
     # 10是特殊情况
     if num == 10:
@@ -699,7 +695,7 @@ def cluster_data():
     label_path12 = "data/cluster/cluster_label12.json"
     feature_path1 = "data/cluster/student_more_info1.json"
     label_path1 = "data/cluster/cluster_label1.json"
-    time_feature_path = "data/cluster/time_cluster_features.json"
+    time_feature_path = "data/cluster/time_feature_merge.json"
     time_label_path = "data/cluster/time_cluster_label.json"
     a = group_cluster_data(feature_path9, label_path9)
     b = group_cluster_data(feature_path10, label_path10, 10)
@@ -811,6 +807,42 @@ def get_mode_shift_data():
         if tag != right_dict[student_id]:
             transfer_matrix[tag][right_dict[student_id]] += 1
     return [right_values_list, transfer_matrix]
+
+
+@app.route("/monthQuestionSubmit", methods=["GET", "POST"])
+# 计算每个月学生针对每道题的提交次数
+def get_month_question_submit():
+    # 拿到前端传递的参数
+    id = request.args.get("id")
+    month = request.args.get("month")
+    with open("data/monthFeature/month_question_submit.json", "r") as f:
+        month_question_submit = json.load(f)
+    with open("data/monthFeature/month_question_accuracy.json", "r") as f:
+        month_question_accuracy = json.load(f)
+    year_month = ""
+    if month == "9":
+        year_month = "2023-09"
+    elif month == "10":
+        year_month = "2023-10"
+    elif month == "11":
+        year_month = "2023-11"
+    elif month == "12":
+        year_month = "2023-12"
+    elif month == "1":
+        year_month = "2024-01"
+    monthRecord1 = month_question_submit[id][year_month]
+    monthRecord2 = month_question_accuracy[id][year_month]
+    # 分别创建存放键和值的数组
+    keys_array = []
+    values_array1 = []
+    values_array2 = []
+    # 遍历答题情况，将键和对应的值分别放入数组中
+    for key, value in monthRecord1.items():
+        keys_array.append(key)
+        values_array1.append(value)
+    for key, value in monthRecord2.items():
+        values_array2.append(value)
+    return [keys_array, values_array1, values_array2]
 
 
 if __name__ == "__main__":

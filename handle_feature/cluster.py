@@ -215,6 +215,22 @@ def add_cluster_feature(aindex):
     )
 
 
+# 给时间特征加上对应的坐标信息
+def time_feature_merge():
+    with open(f"data/cluster/time_feature.json", "r") as f:
+        time_feature = json.load(f)
+    with open(f"data/cluster/time_cluster_coordinates.json", "r") as f:
+        time_cluster_coordinates = json.load(f)
+    # 使用列表推导式遍历两个大列表并添加坐标字段
+    new_dicts_list = [
+        {**d, "value": time_cluster_coordinates[i]} for i, d in enumerate(time_feature)
+    ]
+    save_to_json(
+        new_dicts_list,
+        f"data/cluster/time_feature_merge.json",
+    )
+
+
 # 计算模式转移的数量
 def mode_shift():
     with open("data/abc/student_tag_dict9.json", "r") as f:
@@ -270,6 +286,120 @@ def elbow():
     print(f"Optimal k using second difference method: {optimal_k_second_diff}")
 
 
+# 每个学生每月针对每道题的提交次数（偏好题型）
+def month_question_submit():
+    # 指定文件夹路径
+    folder_path = "data/temporary/s-s-c"
+    # 获取文件夹下所有文件的文件名
+    file_names = os.listdir(folder_path)
+    # 创建一个空字典，用于存储每个学生每个月的数据
+    monthly_records = {}
+    # 循环遍历文件夹下的每个文件
+    for file_name in file_names:
+        # 拼接文件的完整路径
+        file_path = os.path.join(folder_path, file_name)
+        # 从JSON文件中读取数据
+        with open(file_path, "r") as f:
+            students_data = json.load(f)
+        # 遍历每个学生的记录
+        for student_id, student_data in students_data.items():
+            # 如果该学生还没有记录，则创建一个新的学生记录字典
+            if student_id not in monthly_records:
+                monthly_records[student_id] = {}
+
+            # 遍历学生的每一天答题情况
+            for date, answers in student_data.items():
+                month = date[:7]  # 提取年月部分
+
+                # 如果该月份还没有记录，则创建一个新的月份记录字典
+                if month not in monthly_records[student_id]:
+                    monthly_records[student_id][month] = {}
+
+                # 将该天的答题情况添加到该月份的记录中
+                for question_id, count in answers.items():
+                    # 如果该题目还没有记录，则创建一个新的记录
+                    if question_id not in monthly_records[student_id][month]:
+                        monthly_records[student_id][month][question_id] = 0
+
+                    # 统计该题目的提交次数
+                    monthly_records[student_id][month][question_id] += count
+    # 保存为JSON文件
+    save_to_json(
+        monthly_records,
+        f"data/monthFeature/month_question_submit.json",
+    )
+
+
+# 统计正确率的函数
+def calculate_accuracy():
+    # 指定文件夹路径
+    folder_path = "data/temporary/s-t-g-new"
+    # 获取文件夹下所有文件的文件名
+    file_names = os.listdir(folder_path)
+    # 创建一个空字典，用于存储每个学生每个月的数据
+    monthly_records = {}
+    # 定义正则表达式模式，匹配文件名中的数字部分
+    pattern = r"\d+"
+    # 循环遍历文件夹下的每个文件
+    for file_name in file_names:
+        # 使用正则表达式进行匹配
+        match = re.search(pattern, file_name)
+        # 如果找到匹配的数字，则提取并打印
+        index = match.group()
+        month = ""
+        if index == "01":
+            month = "2024-01"
+        elif index == "09":
+            month = "2023-09"
+        elif index == "10":
+            month = "2023-10"
+        elif index == "11":
+            month = "2023-11"
+        elif index == "12":
+            month = "2023-12"
+        # 拼接文件的完整路径
+        file_path = os.path.join(folder_path, file_name)
+        # 从JSON文件中读取数据
+        with open(file_path, "r") as f:
+            students_data = json.load(f)
+        for student_id, student_data in students_data.items():
+            if student_id not in monthly_records:
+                monthly_records[student_id] = {}
+            if month not in monthly_records[student_id]:
+                monthly_records[student_id][month] = {}
+            for question_id, logs in student_data.items():
+                if question_id not in monthly_records:
+                    monthly_records[student_id][month][question_id] = {
+                        "correct": 0,
+                        "total": 0,
+                    }
+                for log in logs:
+                    monthly_records[student_id][month][question_id]["total"] += 1
+                    if log[2] == "Absolutely_Correct" or log[2] == "Partially_Correct":
+                        monthly_records[student_id][month][question_id]["correct"] += 1
+    final_result = {}
+    for student_id, student_data in monthly_records.items():
+        if student_id not in final_result:
+            final_result[student_id] = {}
+        for month, month_data in student_data.items():
+            if month not in final_result[student_id]:
+                final_result[student_id][month] = {}
+            for question_id, logs in month_data.items():
+                print(logs)
+                if question_id not in final_result:
+                    final_result[student_id][month][question_id] = 0
+                correct = logs["correct"]
+                total = logs["total"]
+                final_result[student_id][month][question_id] = (
+                    correct / total if total > 0 else 0
+                )
+    # 保存为JSON文件
+    save_to_json(
+        final_result,
+        f"data/monthFeature/month_question_accuracy.json",
+    )
+
+
 # try_cluster()
 # elbow()
 # student_to_tag1(0)
@@ -281,8 +411,11 @@ def elbow():
 # student_to_tag2(3)
 # student_to_tag2(4)
 # mode_shift()
-add_cluster_feature(0)
-add_cluster_feature(1)
-add_cluster_feature(2)
-add_cluster_feature(3)
-add_cluster_feature(4)
+# add_cluster_feature(0)
+# add_cluster_feature(1)
+# add_cluster_feature(2)
+# add_cluster_feature(3)
+# add_cluster_feature(4)
+# month_question_submit()
+# calculate_accuracy()
+time_feature_merge()
