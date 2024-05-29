@@ -415,7 +415,7 @@ def learnCalendarInfo():
             re[g[0]][str(date[0])].append(temp)
 
             # 提交次数
-            re[g[0]][str(date[0])].append(all_counts/title_num)
+            re[g[0]][str(date[0])].append(all_counts / title_num)
 
         # print(sort_g)
     # print(re)
@@ -485,6 +485,13 @@ def personalSubmitInfo():
     return re
 
 
+# 帮助进行四舍五入操作
+def round_if_needed(value, decimals=4):
+    if isinstance(value, float) and value != int(value):
+        return round(value, decimals)
+    return value
+
+
 @app.route("/featureStatisticsInfo", methods=["GET", "POST"])
 def featureStatisticsInfo():
     # 输入：month,10月修改顺序
@@ -499,7 +506,8 @@ def featureStatisticsInfo():
         tags = read_json("data/cluster/time_cluster_label.json")
         for i in range(len(tags)):
             result[tags[i]].append(
-                [feature[i][0], feature[i][1], feature[i][3], feature[i][2]])
+                [feature[i][0], feature[i][1], feature[i][3], feature[i][2]]
+            )
 
     else:
         # 特征：提交次数、活跃天数、正确占比、题目数
@@ -538,13 +546,19 @@ def featureStatisticsInfo():
     for key, value in final_re.items():
         new_final_re[key] = []
         for data in value:
+            # 四舍五入
+            min_val = round_if_needed(min(data))
+            q1_val = round_if_needed(np.percentile(data, 25))
+            median_val = round_if_needed(np.median(data))
+            q3_val = round_if_needed(np.percentile(data, 75))
+            max_val = round_if_needed(max(data))
             new_final_re[key].append(
                 [
-                    min(data),
-                    np.percentile(data, 25),
-                    np.median(data),
-                    np.percentile(data, 75),
-                    max(data),
+                    min_val,
+                    q1_val,
+                    median_val,
+                    q3_val,
+                    max_val,
                 ]
             )
     return new_final_re
@@ -824,7 +838,7 @@ def get_mode_shift_data():
 
 
 @app.route("/monthQuestionSubmit", methods=["GET", "POST"])
-# 计算每个月学生针对每道题的提交次数
+# 计算每个月学生针对每道题的提交次数和正确率
 def get_month_question_submit():
     # 拿到前端传递的参数
     id = request.args.get("id")
