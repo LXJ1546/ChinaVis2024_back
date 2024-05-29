@@ -799,7 +799,7 @@ def get_mode_shift_data():
 
 
 @app.route("/monthQuestionSubmit", methods=["GET", "POST"])
-# 计算每个月学生针对每道题的提交次数
+# 计算每个月学生针对每道题的提交次数和正确率
 def get_month_question_submit():
     # 拿到前端传递的参数
     id = request.args.get("id")
