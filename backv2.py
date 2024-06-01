@@ -7,7 +7,6 @@ import re
 import json
 import logging
 from collections import Counter
-import concurrent.futures
 
 
 app = Flask(__name__)
@@ -887,29 +886,15 @@ def setWeightInfo():
     # 处理basicInfo所需数据
     pro_basicInfo()  # 这一步处理了aaa.csv，理论上后面的步骤可以并行
 
-    # 使用ThreadPoolExecutor并行执行函数
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        # 提交函数执行
-        future1 = executor.submit(pro_cluster)
-        future2 = executor.submit(pro_corr)
-        future3 = executor.submit(pro_radar)
-        future4 = executor.submit(pro_timeStudentInfo)
+    # 处理聚类视图的knowledge和rank
+    pro_cluster()
 
-        # 获取函数执行结果
-        result1 = future1.result()
-        result2 = future2.result()
-        result3 = future3.result()
-        result4 = future4.result()
-
-    # # 处理聚类视图的knowledge和rank
-    # pro_cluster()
-
-    # # 处理相关系数
-    # pro_corr()
-    # # 处理雷达图
-    # pro_radar()
-    # # 处理时间模式右下象形柱图数据(这一步处理好像有点耗时)
-    # pro_timeStudentInfo()
+    # 处理相关系数
+    pro_corr()
+    # 处理雷达图
+    pro_radar()
+    # 处理时间模式右下象形柱图数据(这一步处理好像有点耗时)
+    pro_timeStudentInfo()
     return "success"
 
 
