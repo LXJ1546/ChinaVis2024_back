@@ -807,7 +807,7 @@ def pro_corr():
         for j in range(len(corr_re[0])):
             for i in range(len(corr_re)):
                 format_re.append([j, i, corr_re[i][j].round(3)])
-        print(format_re)
+        # print(format_re)
         return (format_re)
 
     result = []
@@ -867,6 +867,62 @@ def pro_radar():
         result[stu] = [avg_k, avg_s, active_days_avg]
     write_dict_to_json('data/detail/radar.json', result)
 
+# 时间模式下，主图下方视图数据
+
+
+def pro_timeEvolution():
+    # 类型映射
+    type_to = {0: '高峰型', 1: '低峰型', 2: '平均型'}
+    month_to = {9: '9月', 10: '10月', 11: '11月', 12: '12月', 1: '1月'}
+    period_to = {'Dawn': '凌晨', 'Morning': '上午',
+                 'Afternoon': '下午', 'Evening': '晚上'}
+    weekday_to = {1: 'weekday', 0: 'weekoff'}
+
+    tags = read_json('data/cluster/time_cluster_label.json')
+    info = pd.read_csv('data/detail/aaa.csv')
+    time_feature = read_json('data/cluster/time_cluster_original_feature.json')
+
+    # 计算平均值
+    result = {}
+    i = 0
+    for month in ['9', '10', '11', '12', '1']:
+        # 工作日、休息日
+        for weekday in [1, 0]:
+            # 时间段
+            for period in ['Dawn', 'Morning', 'Afternoon', 'Evening']:
+                key = month+'-'+period
+                if key not in result:
+                    result[key] = []
+                result[key].append(time_feature[i][3])
+                i = i+1
+    # 使用字典推导式计算平均值并重新赋值给键
+    averages = {key: sum(values) / len(values)
+                for key, values in result.items()}
+    # print(averages)
+
+    # 依次9到12月
+    i = 0
+    result = {'weekday': [], 'weekoff': []}
+    for month in month_to.keys():
+        # 工作日、休息日
+        for weekday in weekday_to.keys():
+            # 时间段
+            for period in period_to.keys():
+                nums = []
+                for rank in ['top', 'mid', 'low']:
+                    students = info[(info['month'] == month)
+                                    & (info['is_weekday'] == weekday) & (info['rank'] == rank)]
+                    nums.append(len(students.groupby('student_ID')))
+
+                result[weekday_to[weekday]].append(
+                    [str(month)+'月-'+period_to[period], type_to[tags[i]], nums, round(time_feature[i][3], 4), round(averages[str(month)+'-'+period], 4)])
+                # print(result)
+
+                i = i+1
+    # print(result)
+    # return(result)
+    write_dict_to_json('data/detail/time_evolution.json', result)
+
 
 @app.route("/setWeightInfo", methods=["GET", "POST"])
 def setWeightInfo():
@@ -893,8 +949,10 @@ def setWeightInfo():
     pro_corr()
     # 处理雷达图
     pro_radar()
-    # 处理时间模式右下象形柱图数据(这一步处理好像有点耗时)
+    # 处理时间模式右下象形柱图数据
     pro_timeStudentInfo()
+    # 时间模式演化图
+    pro_timeEvolution()
     return "success"
 
 
@@ -1566,6 +1624,14 @@ def timeStudentInfo():
 def timeRadarInfo():
     data = read_json('data/detail/radar.json')
     return data
+
+
+@app.route("/timeEvolutionInfo", methods=["GET", "POST"])
+def timeEvolutionInfo():
+    data = read_json('data/detail/time_evolution.json')
+    result = [data['weekday'], data['weekoff']]
+
+    return result
 
 
 # 协助获取聚类所需的坐标数据以及对应的标签数据
