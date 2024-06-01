@@ -7,6 +7,7 @@ import re
 import json
 import logging
 from collections import Counter
+import concurrent.futures
 
 
 app = Flask(__name__)
@@ -776,7 +777,7 @@ def pro_corr():
         # 时间段
         period = ['Dawn', 'Morning', 'Afternoon', 'Evening']
         feature = read_json(
-            'F:/vscode/vis24/data/datap/feature/time_cluster_v1.json')
+            'data/cluster/time_cluster_original_feature.json')
         re = {}
         for i in range(len(feature)):
             p = period[i % 4]
@@ -817,7 +818,55 @@ def pro_corr():
         result.append(data)
     result.append(time_period_corr())
     write_dict_to_json('data/detail/corr.json', result)
-    # return (result)
+
+# 处理雷达图数据
+
+
+def pro_radar():
+    # 首先根据总知识点掌握情况将学生分为：top/mid/low三类
+    file = "data/classes/basic_info/basic_info_all.csv"
+    data = (
+        pd.read_csv(file)
+        .sort_values(by="all_knowledge", ascending=False)
+        .reset_index(drop=True)
+    )
+    # 总共1364,分为409，546，409，
+    # print(len(data['all_knowledge']))
+    top = list(data.loc[0:408, "Unnamed: 0"].values)
+    mid = list(data.loc[409:954, "Unnamed: 0"].values)
+    low = list(data.loc[955:1363, "Unnamed: 0"].values)
+    students_to = {"top": top, "mid": mid, "low": low}
+    # print(students_to)
+    # write_dict_to_json('student_top_low.json', students_to)
+
+    # 需要计算所有题平均正确率
+    score_rate = pd.read_csv(
+        "data/classes/correct_rate/correct_rate_class_all.csv")
+    score_rate = score_rate.fillna(0)
+    score_rate["avg"] = score_rate.iloc[:, 1:].mean(axis=1)
+
+    df = pd.read_csv("data/detail/aaa.csv")
+
+    result = {}
+    for stu in students_to.keys():
+        # 掌握程度
+        students = data[data["Unnamed: 0"].isin(students_to[stu])]
+        # print(students)
+        avg_k = sum(students["all_knowledge"].to_list()) / \
+            len(students_to[stu])
+        # 得分率
+        students = score_rate[score_rate["Unnamed: 0"].isin(students_to[stu])]
+        avg_s = sum(students["avg"].to_list()) / len(students_to[stu])
+        # 活跃度
+        students = df[df["student_ID"].isin(students_to[stu])]
+        id_group = students.groupby("student_ID")
+        active_days = 0
+        for id in id_group:
+            active_days = active_days + len(id[1]["date"].value_counts().index)
+        active_days_avg = active_days / len(students_to[stu])
+
+        result[stu] = [avg_k, avg_s, active_days_avg]
+    write_dict_to_json('data/detail/radar.json', result)
 
 
 @app.route("/setWeightInfo", methods=["GET", "POST"])
@@ -836,15 +885,31 @@ def setWeightInfo():
     get_all_class_master_knowledge("sub_knowledge")
 
     # 处理basicInfo所需数据
-    pro_basicInfo()
+    pro_basicInfo()  # 这一步处理了aaa.csv，理论上后面的步骤可以并行
 
-    # 处理聚类视图的knowledge和rank
-    pro_cluster()
+    # 使用ThreadPoolExecutor并行执行函数
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        # 提交函数执行
+        future1 = executor.submit(pro_cluster)
+        future2 = executor.submit(pro_corr)
+        future3 = executor.submit(pro_radar)
+        future4 = executor.submit(pro_timeStudentInfo)
 
-    # 处理相关系数
-    pro_corr()
-    # 处理时间模式右下象形柱图数据(这一步处理好像有点耗时)
-    pro_timeStudentInfo()
+        # 获取函数执行结果
+        result1 = future1.result()
+        result2 = future2.result()
+        result3 = future3.result()
+        result4 = future4.result()
+
+    # # 处理聚类视图的knowledge和rank
+    # pro_cluster()
+
+    # # 处理相关系数
+    # pro_corr()
+    # # 处理雷达图
+    # pro_radar()
+    # # 处理时间模式右下象形柱图数据(这一步处理好像有点耗时)
+    # pro_timeStudentInfo()
     return "success"
 
 
@@ -1514,50 +1579,8 @@ def timeStudentInfo():
 
 @app.route("/timeRadarInfo", methods=["GET", "POST"])
 def timeRadarInfo():
-    # 首先根据总知识点掌握情况将学生分为：top/mid/low三类
-    file = "data/classes/basic_info/basic_info_all.csv"
-    data = (
-        pd.read_csv(file)
-        .sort_values(by="all_knowledge", ascending=False)
-        .reset_index(drop=True)
-    )
-    # 总共1364,分为409，546，409，
-    # print(len(data['all_knowledge']))
-    top = list(data.loc[0:408, "Unnamed: 0"].values)
-    mid = list(data.loc[409:954, "Unnamed: 0"].values)
-    low = list(data.loc[955:1363, "Unnamed: 0"].values)
-    students_to = {"top": top, "mid": mid, "low": low}
-    # print(students_to)
-    # write_dict_to_json('student_top_low.json', students_to)
-
-    # 需要计算所有题平均正确率
-    score_rate = pd.read_csv(
-        "data/classes/correct_rate/correct_rate_class_all.csv")
-    score_rate = score_rate.fillna(0)
-    score_rate["avg"] = score_rate.iloc[:, 1:].mean(axis=1)
-
-    df = pd.read_csv("data/detail/aaa.csv")
-
-    result = {}
-    for stu in students_to.keys():
-        # 掌握程度
-        students = data[data["Unnamed: 0"].isin(students_to[stu])]
-        # print(students)
-        avg_k = sum(students["all_knowledge"].to_list()) / \
-            len(students_to[stu])
-        # 得分率
-        students = score_rate[score_rate["Unnamed: 0"].isin(students_to[stu])]
-        avg_s = sum(students["avg"].to_list()) / len(students_to[stu])
-        # 活跃度
-        students = df[df["student_ID"].isin(students_to[stu])]
-        id_group = students.groupby("student_ID")
-        active_days = 0
-        for id in id_group:
-            active_days = active_days + len(id[1]["date"].value_counts().index)
-        active_days_avg = active_days / len(students_to[stu])
-
-        result[stu] = [avg_k, avg_s, active_days_avg]
-    return result
+    data = read_json('data/detail/radar.json')
+    return data
 
 
 # 协助获取聚类所需的坐标数据以及对应的标签数据
