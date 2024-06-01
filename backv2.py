@@ -13,7 +13,6 @@ app = Flask(__name__)
 # 允许跨域传输数据
 CORS(app)
 app.config['GREETING'] = 'Hello, World!'
-app.config['TitleMaster'] = {}
 
 
 def read_json(f_name):
@@ -591,6 +590,96 @@ def pro_cluster():
                 0]
         write_dict_to_json(file_name, data)
 
+# 掌握程度衡量权重变化后，top,mid,low的学生可能会变化，而且掌握程度也变了，因次要重新计算
+
+
+def pro_corr():
+
+    def get_knowledge_master_v4(mon):
+        student_to_tag = 'data/cluster/student_tag_dict' + \
+            str(mon)+'.json'
+        knowledge_ = 'data/knowledge/month_knowledge/student_master_knowledge_' + \
+            str(mon)+'.csv'
+
+        tag = read_json(student_to_tag)
+        knowledge_master = pd.read_csv(knowledge_)
+
+        # 注意类别数量
+        re = {0: [], 1: [], 2: []}
+        for id, value in tag.items():
+            # 3表示没有做题
+            if (value != 3):
+                knowledge = knowledge_master[knowledge_master['Unnamed: 0']
+                                             == id]['all_knowledge'].tolist()[0]
+
+                re[value].append(knowledge)
+        # print(re)
+        return re
+
+    def read_feature_encoder_v5(mon):
+        month = {'9': 0, '10': 1, '11': 2, '12': 3, '1': 4}
+        # 根据聚类后的标签，将原来的特征矩阵按照标签进行分组
+        # 原始特征矩阵
+        feature = read_json(
+            'data/cluster/month_student_feature_new.json')
+
+        student_to_tag = 'data/cluster/student_tag_dict' + \
+            str(mon)+'.json'
+        tag = read_json(student_to_tag)
+
+        # 注意类别数量
+        re = {0: [], 1: [], 2: []}
+        # for i in range(len(tag)):
+        #     re[tag[i][1]].append(feature[month[str(mon)]][i])
+
+        for id, value in tag.items():
+            if (value != 3):
+                re[value].append(feature[month[str(mon)]][i])
+
+        # print(re)
+        # re = {0: [[1,2,3,4],[]], 1: [], 2: []}
+        return re
+
+    def get_corr_v5(mon):
+        feature = read_feature_encoder_v5(mon)
+        master = get_knowledge_master_v4(mon)
+
+        feature_type = ['submit', 'active', 'correct', 'title']
+        # # 创建示例数据
+        # data = {'变量1': [1, 2, 3, 4, 5],
+        #         '变量2': [2, 4, 6, 8, 10],
+        #         '变量3': [3, 6, 9, 12, 15]}
+
+        # 每一类别分别计算
+        df_re = pd.DataFrame()
+        for key in master.keys():
+            print(key, '---------------------------------------')
+            arr = np.array(feature[key]).T
+            # 获取每一列的值
+            re = {}
+            re['knowledge'] = master[key]
+
+            for i in range(len(arr)):
+                re[feature_type[i]] = list(arr[i])
+            # print(re)
+            df = pd.DataFrame(re)
+            # df['month'] = np.arange(5).repeat(mon)
+            new_df = df.corr()
+            new_df['tag'] = [key, key, key, key, key]
+            new_df['month'] = [mon, mon, mon, mon, mon]
+            df_re = pd.concat([df_re, new_df], ignore_index=True)
+
+        return (df_re)
+
+
+# df = pd.DataFrame()
+# for month in [9, 10, 11, 12, 1]:
+#     print(month, 'month')
+
+#     data = get_corr_v5(month)
+#     df = pd.concat([df, data], ignore_index=True)
+# print(df)
+# df.to_csv('corr.csv')
 
 @app.route("/setWeightInfo", methods=["GET", "POST"])
 def setWeightInfo():
@@ -958,7 +1047,8 @@ def learnCalendarInfo():
         sort_g = g[1].sort_values("date")
         date_g = sort_g.groupby("date")
         for date in date_g:
-            re[g[0]][str(date[0])] = []
+            strDate = str(date[0]).replace("/", "-")
+            re[g[0]][strDate] = []
             # 正确率
             result_status = date[1]["state"].value_counts(normalize=True)
             correct_rate = 0
@@ -968,10 +1058,10 @@ def learnCalendarInfo():
             if "Partially_Correct" in result_status.index:
                 correct_rate = correct_rate + \
                     result_status["Partially_Correct"]
-            re[g[0]][str(date[0])].append(correct_rate)
+            re[g[0]][strDate].append(correct_rate)
             # 答题数
             title_num = len(date[1]["title_ID"].value_counts().index)
-            re[g[0]][str(date[0])].append(title_num)
+            re[g[0]][strDate].append(title_num)
             # 语言
             all_counts = len(date[1])  # 总提交次数
 
@@ -983,10 +1073,10 @@ def learnCalendarInfo():
                     temp.append(all_language[lan] / all_counts)
                 else:
                     temp.append(0)
-            re[g[0]][str(date[0])].append(temp)
+            re[g[0]][strDate].append(temp)
 
             # 提交次数
-            re[g[0]][str(date[0])].append(all_counts / title_num)
+            re[g[0]][strDate].append(all_counts / title_num)
 
         # print(sort_g)
     # print(re)
