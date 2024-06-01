@@ -1189,7 +1189,8 @@ def personalSubmitInfo():
 
     file = "./data/detail/aaa.csv"
     df = pd.read_csv(file)
-    info = df[(df["student_ID"] == student_id) & (df["date"] == learning_date)]
+    info = df[(df["student_ID"] == student_id) & (
+        df["date"] == learning_date.replace("-", "/"))]
     # print(info)
     title_g = info.groupby("title_ID")
     re = {}
@@ -1404,6 +1405,17 @@ def onePeriodInfo():
     # 根据日期进行分组，
     result = {}
     for g in date_group:
+        # 如果是9，1，月，需要表示为09，01
+        strDate = str(g[0]).replace("/", "-")
+        # 使用split()函数将字符串拆分为年、月、日
+        year, month, day = strDate.split('-')
+
+        # 使用zfill()函数将月份格式化为两位数
+        month = month.zfill(2)
+
+        # 格式化后的字符串
+        strDate = f'{year}-{month}-{day}'
+
         # 类型依次是针对、多样、尝试，012
         # 十月标签顺序不一样要修改210
         stu_group = g[1].groupby("student_ID")
@@ -1415,7 +1427,8 @@ def onePeriodInfo():
             else:
                 tag = tags[student[0]]
                 sum_li[tag] = sum_li[tag] + 1
-        result[str(g[0]).replace("/", "-")] = sum_li
+
+        result[strDate] = sum_li
     # print(result)
     return result
 
