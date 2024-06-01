@@ -1415,7 +1415,7 @@ def onePeriodInfo():
             else:
                 tag = tags[student[0]]
                 sum_li[tag] = sum_li[tag] + 1
-        result[g[0]] = sum_li
+        result[str(g[0]).replace("/", "-")] = sum_li
     # print(result)
     return result
 
