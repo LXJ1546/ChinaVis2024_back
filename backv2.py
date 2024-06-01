@@ -13,6 +13,7 @@ app = Flask(__name__)
 # 允许跨域传输数据
 CORS(app)
 app.config['GREETING'] = 'Hello, World!'
+# app.config['corr'] = []
 
 
 def read_json(f_name):
@@ -715,37 +716,34 @@ def pro_corr():
         feature = read_json(
             'data/cluster/month_student_feature_new.json')
 
-        student_to_tag = 'data/cluster/student_tag_dict' + \
+        student_to_tag = 'data/cluster/month_student_to_tag/student_to_tag' + \
             str(mon)+'.json'
         tag = read_json(student_to_tag)
 
         # 注意类别数量
         re = {0: [], 1: [], 2: []}
-        # for i in range(len(tag)):
-        #     re[tag[i][1]].append(feature[month[str(mon)]][i])
-
-        for id, value in tag.items():
-            if (value != 3):
-                re[value].append(feature[month[str(mon)]][i])
-
-        # print(re)
-        # re = {0: [[1,2,3,4],[]], 1: [], 2: []}
+        for i in range(len(tag)):
+            re[tag[i][1]].append([feature[month[str(mon)]][i][0], feature[month[str(
+                mon)]][i][1], feature[month[str(mon)]][i][3], feature[month[str(mon)]][i][2]])
         return re
 
     def get_corr_v5(mon):
         feature = read_feature_encoder_v5(mon)
         master = get_knowledge_master_v4(mon)
 
-        feature_type = ['submit', 'active', 'correct', 'title']
+        # feature_type = ['submit', 'active', 'correct', 'title']
+        feature_type = ['submit', 'active', 'title', 'correct']
+
         # # 创建示例数据
         # data = {'变量1': [1, 2, 3, 4, 5],
         #         '变量2': [2, 4, 6, 8, 10],
         #         '变量3': [3, 6, 9, 12, 15]}
 
         # 每一类别分别计算
-        df_re = pd.DataFrame()
+        corr_re = []
+        # df_re = pd.DataFrame()
         for key in master.keys():
-            print(key, '---------------------------------------')
+            # print(key, '---------------------------------------')
             arr = np.array(feature[key]).T
             # 获取每一列的值
             re = {}
@@ -756,22 +754,71 @@ def pro_corr():
             # print(re)
             df = pd.DataFrame(re)
             # df['month'] = np.arange(5).repeat(mon)
-            new_df = df.corr()
-            new_df['tag'] = [key, key, key, key, key]
-            new_df['month'] = [mon, mon, mon, mon, mon]
-            df_re = pd.concat([df_re, new_df], ignore_index=True)
+            new_df = df.corr()['knowledge']
+            corr_re.append([new_df['submit'], new_df['active'],
+                            new_df['title'], new_df['correct']])
+            # new_df['tag'] = [key, key, key, key, key]
+            # new_df['month'] = [mon, mon, mon, mon, mon]
+            # df_re = pd.concat([df_re, new_df], ignore_index=True)
+        # 处理格式
+        format_re = []
+        if (mon == 10):
+            # 交换第一个和最后一个元素
+            corr_re[0], corr_re[-1] = corr_re[-1], corr_re[0]
 
-        return (df_re)
+        for j in range(len(corr_re[0])):
+            for i in range(len(corr_re)):
+                format_re.append([j, i, corr_re[i][j].round(3)])
 
+        return (format_re)
 
-# df = pd.DataFrame()
-# for month in [9, 10, 11, 12, 1]:
-#     print(month, 'month')
+    def time_period_corr():
+        # 时间段
+        period = ['Dawn', 'Morning', 'Afternoon', 'Evening']
+        feature = read_json(
+            'F:/vscode/vis24/data/datap/feature/time_cluster_v1.json')
+        re = {}
+        for i in range(len(feature)):
+            p = period[i % 4]
+            if p in re:
+                re[p].append([feature[i][3], feature[i][0],
+                              feature[i][1], feature[i][2]])
+            else:
+                re[p] = []
+                re[p].append([feature[i][3], feature[i][0],
+                              feature[i][1], feature[i][2]])
 
-#     data = get_corr_v5(month)
-#     df = pd.concat([df, data], ignore_index=True)
-# print(df)
-# df.to_csv('corr.csv')
+        # print(re)
+
+        feature_type = ['correct', 'submit', 'active',  'title']
+        # 每一类别分别计算
+        df_re = pd.DataFrame()
+        corr_re = []
+        for key in re.keys():
+            print(key, '---------------------------------------')
+            df = pd.DataFrame(re[key], columns=feature_type)
+            new_df = df.corr()['correct']
+            corr_re.append(
+                [new_df['submit'], new_df['active'], new_df['title']])
+            # # new_df['tag'] = [key, key, key, key]
+            # df_re = pd.concat([df_re, new_df])  # , ignore_index=True)
+
+        format_re = []
+        for j in range(len(corr_re[0])):
+            for i in range(len(corr_re)):
+                format_re.append([j, i, corr_re[i][j].round(3)])
+        print(format_re)
+        return (format_re)
+
+    result = []
+    for month in [9, 10, 11, 12, 1]:
+        # print(month, 'month')
+        data = get_corr_v5(month)
+        result.append(data)
+    result.append(time_period_corr())
+    write_dict_to_json('data/detail/corr.json', result)
+    # return (result)
+
 
 @app.route("/setWeightInfo", methods=["GET", "POST"])
 def setWeightInfo():
@@ -793,6 +840,9 @@ def setWeightInfo():
 
     # 处理聚类视图的knowledge和rank
     pro_cluster()
+
+    # 处理相关系数
+    pro_corr()
     # 处理时间模式右下象形柱图数据(这一步处理好像有点耗时)
     pro_timeStudentInfo()
     return "success"
@@ -1578,92 +1628,93 @@ def cluster_data():
 # 相关性系数列表
 @app.route("/correlationData")
 def correlation_data():
-    data_list = [
-        [
-            [0, 0, 0.139],
-            [0, 1, 0.345],
-            [0, 2, 0.183],
-            [1, 0, 0.05],
-            [1, 1, -0.504],
-            [1, 2, 0.088],
-            [2, 0, 0.258],
-            [2, 1, 0.352],
-            [2, 2, 0.443],
-            [3, 0, 0.755],
-            [3, 1, 0.694],
-            [3, 2, 0.597],
-        ],
-        [
-            [0, 0, -0.189],
-            [0, 1, 0.378],
-            [0, 2, -0.178],
-            [1, 0, 0.133],
-            [1, 1, -0.480],
-            [1, 2, 0.100],
-            [2, 0, 0.321],
-            [2, 1, 0.148],
-            [2, 2, 0.416],
-            [3, 0, 0.702],
-            [3, 1, 0.742],
-            [3, 2, 0.594],
-        ],
-        [
-            [0, 0, -0.051],
-            [0, 1, 0.388],
-            [0, 2, -0.227],
-            [1, 0, -0.157],
-            [1, 1, -0.303],
-            [1, 2, 0.047],
-            [2, 0, 0.096],
-            [2, 1, 0.107],
-            [2, 2, 0.323],
-            [3, 0, 0.616],
-            [3, 1, 0.777],
-            [3, 2, 0.569],
-        ],
-        [
-            [0, 0, 0.031],
-            [0, 1, 0.472],
-            [0, 2, -0.248],
-            [1, 0, -0.409],
-            [1, 1, -0.319],
-            [1, 2, -0.046],
-            [2, 0, 0.022],
-            [2, 1, 0.462],
-            [2, 2, 0.457],
-            [3, 0, 0.585],
-            [3, 1, 0.623],
-            [3, 2, 0.536],
-        ],
-        [
-            [0, 0, 0.039],
-            [0, 1, 0.885],
-            [0, 2, -0.131],
-            [1, 0, -0.142],
-            [1, 1, -0.854],
-            [1, 2, -0.664],
-            [2, 0, 0.040],
-            [2, 1, 0.798],
-            [2, 2, 0.160],
-            [3, 0, 0.825],
-            [3, 1, 0.936],
-            [3, 2, 0.340],
-        ],
-        [
-            [0, 0, -0.771],
-            [0, 1, -0.315],
-            [0, 2, -0.632],
-            [0, 3, -0.190],
-            [1, 0, -0.673],
-            [1, 1, -0.250],
-            [1, 2, -0.582],
-            [1, 3, -0.167],
-            [2, 0, -0.689],
-            [2, 1, -0.226],
-            [2, 2, -0.594],
-            [2, 3, -0.168],
-        ],
-    ]
+    data_list = read_json('data/detail/corr.json')
+    # data_list = [
+    #     [
+    #         [0, 0, 0.139],
+    #         [0, 1, 0.345],
+    #         [0, 2, 0.183],
+    #         [1, 0, 0.05],
+    #         [1, 1, -0.504],
+    #         [1, 2, 0.088],
+    #         [2, 0, 0.258],
+    #         [2, 1, 0.352],
+    #         [2, 2, 0.443],
+    #         [3, 0, 0.755],
+    #         [3, 1, 0.694],
+    #         [3, 2, 0.597],
+    #     ],
+    #     [
+    #         [0, 0, -0.189],
+    #         [0, 1, 0.378],
+    #         [0, 2, -0.178],
+    #         [1, 0, 0.133],
+    #         [1, 1, -0.480],
+    #         [1, 2, 0.100],
+    #         [2, 0, 0.321],
+    #         [2, 1, 0.148],
+    #         [2, 2, 0.416],
+    #         [3, 0, 0.702],
+    #         [3, 1, 0.742],
+    #         [3, 2, 0.594],
+    #     ],
+    #     [
+    #         [0, 0, -0.051],
+    #         [0, 1, 0.388],
+    #         [0, 2, -0.227],
+    #         [1, 0, -0.157],
+    #         [1, 1, -0.303],
+    #         [1, 2, 0.047],
+    #         [2, 0, 0.096],
+    #         [2, 1, 0.107],
+    #         [2, 2, 0.323],
+    #         [3, 0, 0.616],
+    #         [3, 1, 0.777],
+    #         [3, 2, 0.569],
+    #     ],
+    #     [
+    #         [0, 0, 0.031],
+    #         [0, 1, 0.472],
+    #         [0, 2, -0.248],
+    #         [1, 0, -0.409],
+    #         [1, 1, -0.319],
+    #         [1, 2, -0.046],
+    #         [2, 0, 0.022],
+    #         [2, 1, 0.462],
+    #         [2, 2, 0.457],
+    #         [3, 0, 0.585],
+    #         [3, 1, 0.623],
+    #         [3, 2, 0.536],
+    #     ],
+    #     [
+    #         [0, 0, 0.039],
+    #         [0, 1, 0.885],
+    #         [0, 2, -0.131],
+    #         [1, 0, -0.142],
+    #         [1, 1, -0.854],
+    #         [1, 2, -0.664],
+    #         [2, 0, 0.040],
+    #         [2, 1, 0.798],
+    #         [2, 2, 0.160],
+    #         [3, 0, 0.825],
+    #         [3, 1, 0.936],
+    #         [3, 2, 0.340],
+    #     ],
+    #     [
+    #         [0, 0, -0.771],
+    #         [0, 1, -0.315],
+    #         [0, 2, -0.632],
+    #         [0, 3, -0.190],
+    #         [1, 0, -0.673],
+    #         [1, 1, -0.250],
+    #         [1, 2, -0.582],
+    #         [1, 3, -0.167],
+    #         [2, 0, -0.689],
+    #         [2, 1, -0.226],
+    #         [2, 2, -0.594],
+    #         [2, 3, -0.168],
+    #     ],
+    # ]
     return data_list
 
 
