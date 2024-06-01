@@ -24,47 +24,47 @@ def read_json(f_name):
 
 def write_dict_to_json(file_path, data):
     # 将字典写入 JSON 文件
-    with open(file_path, 'w') as json_file:
+    with open(file_path, "w") as json_file:
         json.dump(data, json_file, indent=4)
 
 
 @app.route("/back")
 def hello():
-    app.config['GREETING'] = '111'
-    return app.config['GREETING']
+    app.config["GREETING"] = "111"
+    return app.config["GREETING"]
 
 
 @app.route("/back1")
 def hello1():
-    return app.config['GREETING']
+    return app.config["GREETING"]
 
 
 # 学生对题目掌握程度
 def get_student_master_title(case, f_name, f_store, w):
-    '''
+    """
     case:表示计算掌握程度还是公式
     f_name:进行处理的文件
     f_store:处理结果的保存路径
     注意：后续可能还需要将掌握程度的权重也作为参数进行传递
-    '''
-    f = open(f_name, 'r')
+    """
+    f = open(f_name, "r")
     content = f.read()
     a = json.loads(content)
     f.close()
 
     # 读取题目用时、内存分布情况
-    f = open('data/detail/title_timeconsume_count.json', 'r')
+    f = open("data/detail/title_timeconsume_count.json", "r")
     content = f.read()
     title_timeconsume_count = json.loads(content)
     f.close()
-    f = open('data/detail/title_memory_count.json', 'r')
+    f = open("data/detail/title_memory_count.json", "r")
     content = f.read()
     title_memory_count = json.loads(content)
     f.close()
 
     re = {}
     # 计算得分率
-    if (case == 'score'):
+    if case == "score":
         # 遍历学生
         for student in a.keys():
             # print(key)
@@ -76,8 +76,8 @@ def get_student_master_title(case, f_name, f_store, w):
                 for item in a[student][title]:
                     # item:[1704206906, 'Class1', 'Absolutely_Error', 0, 'Method_m8vwGkEZc3TSW2xqYUoR', 320, '2', 3, "['b3C9s,b3C9s_l4z6od7y']"]
                     # 计算得分率使用这个
-                    score_rate.append(item[3]/item[7])
-                score_rate_avg = sum(score_rate)/len(score_rate)
+                    score_rate.append(item[3] / item[7])
+                score_rate_avg = sum(score_rate) / len(score_rate)
                 # 计算得分率
                 re[student][title] = score_rate_avg
 
@@ -93,73 +93,84 @@ def get_student_master_title(case, f_name, f_store, w):
                 state_list = []  # 存储学生的答题状态，用以计算正确占比和错误占比
                 memory_rank = 1  # 内存和用时没有完全正确的情况就设为1
                 timeconsume_rank = 1
-                memory_timeconsume_rank_candidata = []  # 记录正确情况下，用时和内存使用的候选，因为可能有多次完全正确
+                memory_timeconsume_rank_candidata = (
+                    []
+                )  # 记录正确情况下，用时和内存使用的候选，因为可能有多次完全正确
 
                 # 遍历题目列表
                 for item in a[student][title]:
                     # item:[1704206906, 'Class1', 'Absolutely_Error', 0, 'Method_m8vwGkEZc3TSW2xqYUoR', 320, '2', 3, "['b3C9s,b3C9s_l4z6od7y']"]
                     # 计算掌握程度使用这个
-                    if item[2] == 'Absolutely_Correct' or 'Partially_Correct':
-                        score_rate.append(item[3]/item[7])
+                    if item[2] == "Absolutely_Correct" or "Partially_Correct":
+                        score_rate.append(item[3] / item[7])
 
                     # 答题状态
                     state_list.append(item[2])
                     # 用时和内存如何衡量,只有在完全正确的情况下考虑
 
-                    if item[2] == 'Absolutely_Correct':
+                    if item[2] == "Absolutely_Correct":
                         total_correct_count = sum(
-                            title_timeconsume_count[title].values())
+                            title_timeconsume_count[title].values()
+                        )
                         # memory
                         # 遍历title_timeconsume_count，计算占比前百分之多少
                         temp_sum = 0
                         for key in title_timeconsume_count[title].keys():
-                            if (int(float(key)) <= int(item[6])):
-                                temp_sum = temp_sum + \
+                            if int(float(key)) <= int(item[6]):
+                                temp_sum = (
+                                    temp_sum +
                                     title_timeconsume_count[title][key]
-                        timeconsume_rank_temp = temp_sum/total_correct_count
+                                )
+                        timeconsume_rank_temp = temp_sum / total_correct_count
 
                         # 遍历title_memory_count，计算占比前百分之多少
                         temp_sum = 0
                         for key in title_memory_count[title].keys():
-                            if (int(key) <= item[5]):
+                            if int(key) <= item[5]:
                                 temp_sum = temp_sum + \
                                     title_memory_count[title][key]
-                        memory_rank_temp = temp_sum/total_correct_count
+                        memory_rank_temp = temp_sum / total_correct_count
                         memory_timeconsume_rank_candidata.append(
-                            [memory_rank_temp, timeconsume_rank_temp])
+                            [memory_rank_temp, timeconsume_rank_temp]
+                        )
 
                 # 从memory_timeconsume_rank_candidata中获取最优的那一次
-                if (len(memory_timeconsume_rank_candidata) > 0):
-                    flag = float('inf')
+                if len(memory_timeconsume_rank_candidata) > 0:
+                    flag = float("inf")
                     flag_index = 0
                     for i in range(len(memory_timeconsume_rank_candidata)):
-                        if (sum(memory_timeconsume_rank_candidata[i]) < flag):
+                        if sum(memory_timeconsume_rank_candidata[i]) < flag:
                             flag = sum(memory_timeconsume_rank_candidata[i])
                             flag_index = i
                     memory_rank = memory_timeconsume_rank_candidata[flag_index][0]
                     timeconsume_rank = memory_timeconsume_rank_candidata[flag_index][1]
 
-                score_rate_avg = sum(score_rate)/len(score_rate)
+                score_rate_avg = sum(score_rate) / len(score_rate)
                 # 错误占比
                 error_count = 0
                 for n in state_list:
                     if "Error" in n:
-                        error_count = error_count+1
-                error_rate = error_count/len(state_list)
+                        error_count = error_count + 1
+                error_rate = error_count / len(state_list)
                 # 正确和部分正确占比
-                correct_rate = 1-error_rate
+                correct_rate = 1 - error_rate
 
                 # # 新版本
-                re[student][title] = w['w1']*score_rate_avg+w['w2']*correct_rate + \
-                    w['w3']*(1-memory_rank)+w['w4']*(1-timeconsume_rank)
+                re[student][title] = (
+                    w["w1"] * score_rate_avg
+                    + w["w2"] * correct_rate
+                    + w["w3"] * (1 - memory_rank)
+                    + w["w4"] * (1 - timeconsume_rank)
+                )
 
     # 将字典转换为 DataFrame
-    df = pd.DataFrame.from_dict(re, orient='index')
+    df = pd.DataFrame.from_dict(re, orient="index")
 
     # 缺失值填充为!!!!!!!!!!!!!!!!!!!!!!
-    df = df.fillna('null')
+    df = df.fillna("null")
     df.to_csv(f_store, index=True)
     return df
+
 
 # 分班级计算所有学生对题目的掌握程度
 
@@ -170,31 +181,32 @@ def get_all_class_master_title(case, w):
     df = pd.DataFrame()
 
     # 分班级计算掌握程度和得分率
-    file = 'data/classes/origin_data/student_title_group'
-    if (case == 'score'):
-        store = 'F:/vscode/vis24/data/datap/DataPro_class/title_score_rate/student_master_title_'
+    file = "data/classes/origin_data/student_title_group"
+    if case == "score":
+        store = "F:/vscode/vis24/data/datap/DataPro_class/title_score_rate/student_master_title_"
     else:
-        store = 'data/classes/title_master/student_master_title_'
+        store = "data/classes/title_master/student_master_title_"
     for i in range(1, 16):
-        print(i)
-        f = file+str(i)+'.json'
-        store_f = store+str(i)+'.csv'
+        # print(i)
+        f = file + str(i) + ".json"
+        store_f = store + str(i) + ".csv"
         result = get_student_master_title(case, f, store_f, w)
         df = pd.concat([df, result])
-    df.to_csv('data/classes/title_master/student_master_title_all.csv')
+    df.to_csv("data/classes/title_master/student_master_title_all.csv")
 
     # 分月份计算每个人的掌握程度
-    file = 'data/classes/month_origin_data/student_title_group'
-    if (case == 'score'):
+    file = "data/classes/month_origin_data/student_title_group"
+    if case == "score":
         pass
         # store = 'F:/vscode/vis24/data/datap/DataPro_class/title_score_rate/student_master_title_'
     else:
-        store = 'data/classes/month_data/student_master_title_'
+        store = "data/classes/month_data/student_master_title_"
     for i in [9, 10, 11, 12, 1]:
         print(i)
-        f = file+str(i)+'.json'
-        store_f = store+str(i)+'.csv'
+        f = file + str(i) + ".json"
+        store_f = store + str(i) + ".csv"
         get_student_master_title(case, f, store_f, w)
+
 
 # 计算对总的知识点的掌握程度
 
@@ -205,7 +217,7 @@ def get_student_master_all_knowledge_new(df):
     origin_df = df.copy(deep=True)
 
     # 将取值为字符串 'null' 的元素替换为数值 0
-    df.replace('null', 0, inplace=True)
+    df.replace("null", 0, inplace=True)
     # print(df)
     # b3C9s 10
     # g7R2j 15
@@ -216,13 +228,19 @@ def get_student_master_all_knowledge_new(df):
     # t5V9e 10
     # y9W5d 33
 
-    origin_df['all_knowledge'] = 10/knowledge_score * df['b3C9s'] + 15/knowledge_score * \
-        df['g7R2j'] + 3/knowledge_score * \
-        df['k4W1c']+36/knowledge_score * df['m3D1v']+5/knowledge_score * df['r8S3g']+3 / \
-        knowledge_score * df['s8Y2f']+10/knowledge_score * \
-        df['t5V9e']+33/knowledge_score * df['y9W5d']
+    origin_df["all_knowledge"] = (
+        10 / knowledge_score * df["b3C9s"]
+        + 15 / knowledge_score * df["g7R2j"]
+        + 3 / knowledge_score * df["k4W1c"]
+        + 36 / knowledge_score * df["m3D1v"]
+        + 5 / knowledge_score * df["r8S3g"]
+        + 3 / knowledge_score * df["s8Y2f"]
+        + 10 / knowledge_score * df["t5V9e"]
+        + 33 / knowledge_score * df["y9W5d"]
+    )
 
     return origin_df
+
 
 # 根据学生对题目的掌握程度计算每个学生对不同知识点的掌握程度
 
@@ -230,12 +248,12 @@ def get_student_master_all_knowledge_new(df):
 def get_student_master_knowledge(param):
     # 主要参数，学生掌握题表，知识点到题目映射表，保存路径
 
-    file = param['student_master_title']
+    file = param["student_master_title"]
 
     # knowledge_to_title_file = 'F:/vscode/vis24/data/datap/knowledge_to_title.json'
-    knowledge_to_title_file = param['knowledge_to_title_file']
+    knowledge_to_title_file = param["knowledge_to_title_file"]
     df = pd.read_csv(file, low_memory=False)
-    f = open(knowledge_to_title_file, 'r')
+    f = open(knowledge_to_title_file, "r")
     content = f.read()
     knowledge_to_title = json.loads(content)
     f.close()
@@ -257,23 +275,26 @@ def get_student_master_knowledge(param):
             for title in title_list:
                 title = title.strip()
                 # row[title]是该题目得分，只当掌握程度不为null时计算
-                if (not pd.isna(row[title])):
+                if not pd.isna(row[title]):
                     flag = False
-                    master_rate = master_rate + \
-                        knowledge_to_title[knowledge][title] / \
-                        total_score*row[title]
-            if (not flag):
+                    master_rate = (
+                        master_rate
+                        + knowledge_to_title[knowledge][title]
+                        / total_score
+                        * row[title]
+                    )
+            if not flag:
                 dict_student_master_knowledge[row[0]][knowledge] = master_rate
     # print(dict_student_master_knowledge)
     # 将字典转换为 DataFrame
-    df = pd.DataFrame.from_dict(dict_student_master_knowledge, orient='index')
+    df = pd.DataFrame.from_dict(dict_student_master_knowledge, orient="index")
     # 缺失值填充为
-    df = df.fillna('null')
+    df = df.fillna("null")
     # file_path = './datap/temp_student_master_knowledge_all.csv'
     # 如果是主知识点，就再添加一列，表示学生的所有知识点总的掌握程度
-    if (param['case'] == 'knowledge'):
+    if param["case"] == "knowledge":
         df = get_student_master_all_knowledge_new(df)
-    file_path = param['result_file']
+    file_path = param["result_file"]
     df.to_csv(file_path, index=True)
     return df
 
@@ -284,34 +305,36 @@ def get_student_master_knowledge_month(param):
     # 主要参数，学生掌握题表，知识点到题目映射表，保存路径
 
     def get_student_master_all_knowledge_month_new(row):
-        all_knowledge = {'b3C9s': 10,
-                         'g7R2j': 15,
-                         'k4W1c': 3,
-                         'm3D1v': 36,
-                         'r8S3g': 5,
-                         's8Y2f': 3,
-                         't5V9e': 10,
-                         'y9W5d': 33}
+        all_knowledge = {
+            "b3C9s": 10,
+            "g7R2j": 15,
+            "k4W1c": 3,
+            "m3D1v": 36,
+            "r8S3g": 5,
+            "s8Y2f": 3,
+            "t5V9e": 10,
+            "y9W5d": 33,
+        }
 
         # 保存做过的知识点
         done_knowledge = {}
         for k in all_knowledge.keys():
             # 做过
-            if (row[k] != 'null'):
+            if row[k] != "null":
                 done_knowledge[k] = all_knowledge[k]
         # print(done_knowledge)
         master = 0
         for k in done_knowledge.keys():
-            master = master+row[k]*done_knowledge[k] / \
+            master = master + row[k] * done_knowledge[k] / \
                 sum(done_knowledge.values())
         return master
 
-    file = param['student_master_title']
+    file = param["student_master_title"]
 
     # knowledge_to_title_file = 'F:/vscode/vis24/data/datap/knowledge_to_title.json'
-    knowledge_to_title_file = param['knowledge_to_title_file']
+    knowledge_to_title_file = param["knowledge_to_title_file"]
     df = pd.read_csv(file, low_memory=False)
-    f = open(knowledge_to_title_file, 'r')
+    f = open(knowledge_to_title_file, "r")
     content = f.read()
     knowledge_to_title = json.loads(content)
     f.close()
@@ -331,7 +354,7 @@ def get_student_master_knowledge_month(param):
             for title in title_list:
                 title = title.strip()
                 # 做过
-                if (not pd.isna(row[title])):
+                if not pd.isna(row[title]):
                     done_title[title] = knowledge_to_title[knowledge][title]
             # 分月时，只考虑做过的题的总分
             total_score = sum(done_title.values())
@@ -342,30 +365,33 @@ def get_student_master_knowledge_month(param):
             for title in title_list:
                 title = title.strip()
                 # row[title]是该题目得分，只当掌握程度不为null时计算
-                if (not pd.isna(row[title])):
+                if not pd.isna(row[title]):
                     flag = False
-                    master_rate = master_rate + \
-                        knowledge_to_title[knowledge][title] / \
-                        total_score*row[title]
-            if (not flag):
+                    master_rate = (
+                        master_rate
+                        + knowledge_to_title[knowledge][title]
+                        / total_score
+                        * row[title]
+                    )
+            if not flag:
                 dict_student_master_knowledge[row[0]][knowledge] = master_rate
     # print(dict_student_master_knowledge)
     # 将字典转换为 DataFrame
-    df = pd.DataFrame.from_dict(dict_student_master_knowledge, orient='index')
+    df = pd.DataFrame.from_dict(dict_student_master_knowledge, orient="index")
     # 缺失值填充为,表示该知识点没做
-    df = df.fillna('null')
+    df = df.fillna("null")
     # print(df)
     # 如果是主知识点，就再添加一列，表示学生的所有知识点总的掌握程度
-    if (param['case'] == 'knowledge'):
+    if param["case"] == "knowledge":
         # df = get_student_master_all_knowledge_month_new(df)
         # 创建空的新列
-        df['all_knowledge'] = None
+        df["all_knowledge"] = None
         # 逐行迭代处理DataFrame，并计算新列的值
         for index, row in df.iterrows():
             new_value = get_student_master_all_knowledge_month_new(row)
-            df.at[index, 'all_knowledge'] = new_value
+            df.at[index, "all_knowledge"] = new_value
     # print(df)
-    file_path = param['result_file']
+    file_path = param["result_file"]
     df.to_csv(file_path, index=True)
 
 
@@ -374,56 +400,58 @@ def get_all_class_master_knowledge(case):
     df = pd.DataFrame()
 
     # 分班级计算掌握知识点和子知识点的
-    file = 'data/classes/title_master/student_master_title_'
-    if (case == 'knowledge'):
-        store = 'data/knowledge/knowledge/student_master_knowledge_'
-        store_all = 'data/knowledge/knowledge/student_master_knowledge_all.csv'
+    file = "data/classes/title_master/student_master_title_"
+    if case == "knowledge":
+        store = "data/knowledge/knowledge/student_master_knowledge_"
+        store_all = "data/knowledge/knowledge/student_master_knowledge_all.csv"
 
-        knowledge_to_title_file = 'data/classes/origin_data/knowledge_to_title.json'
+        knowledge_to_title_file = "data/classes/origin_data/knowledge_to_title.json"
     # 否则就是子知识点
     else:
-        store = 'data/knowledge/sub_knowledge/student_master_sub_knowledge_'
-        store_all = 'data/knowledge/sub_knowledge/student_master_sub_knowledge_all.csv'
+        store = "data/knowledge/sub_knowledge/student_master_sub_knowledge_"
+        store_all = "data/knowledge/sub_knowledge/student_master_sub_knowledge_all.csv"
 
-        knowledge_to_title_file = 'data/classes/origin_data/sub_knowledge_to_title.json'
+        knowledge_to_title_file = "data/classes/origin_data/sub_knowledge_to_title.json"
     for i in range(1, 16):
         print(i)
-        f = file+str(i)+'.csv'
-        store_f = store+str(i)+'.csv'
+        f = file + str(i) + ".csv"
+        store_f = store + str(i) + ".csv"
         # # 分班获取学生对每个知识点的掌握程度
-        param = {"student_master_title": f,
-                 "knowledge_to_title_file": knowledge_to_title_file,
-                 "result_file": store_f,
-                 'case': case
-                 }
+        param = {
+            "student_master_title": f,
+            "knowledge_to_title_file": knowledge_to_title_file,
+            "result_file": store_f,
+            "case": case,
+        }
         result = get_student_master_knowledge(param)
         df = pd.concat([df, result], ignore_index=True)
     df.to_csv(store_all)
 
     # 分月份计算每个人的掌握程度
-    file = 'data/classes/month_data/student_master_title_'
-    if (case == 'knowledge'):
-        store = 'data/classes/month_data/month_knowledge/student_master_knowledge_'
-        knowledge_to_title_file = 'data/classes/origin_data/knowledge_to_title.json'
+    file = "data/classes/month_data/student_master_title_"
+    if case == "knowledge":
+        store = "data/classes/month_data/month_knowledge/student_master_knowledge_"
+        knowledge_to_title_file = "data/classes/origin_data/knowledge_to_title.json"
         for i in [9, 10, 11, 12, 1]:
             # for i in [10]:
             print(i)
-            f = file+str(i)+'.csv'
-            store_f = store+str(i)+'.csv'
+            f = file + str(i) + ".csv"
+            store_f = store + str(i) + ".csv"
             # # 分班获取学生对每个知识点的掌握程度
-            param = {"student_master_title": f,
-                     "knowledge_to_title_file": knowledge_to_title_file,
-                     "result_file": store_f,
-                     'case': case
-                     }
+            param = {
+                "student_master_title": f,
+                "knowledge_to_title_file": knowledge_to_title_file,
+                "result_file": store_f,
+                "case": case,
+            }
             # get_student_master_knowledge(param)
             get_student_master_knowledge_month(param)
 
 
 def pro_basicInfo():
-    master_file = 'data/knowledge/knowledge/student_master_knowledge_'
-    basic_file = 'data/classes/origin_data/Data_StudentInfo.csv'
-    store_file = './data/classes/basic_info/basic_info_'
+    master_file = "data/knowledge/knowledge/student_master_knowledge_"
+    basic_file = "data/classes/origin_data/Data_StudentInfo.csv"
+    store_file = "./data/classes/basic_info/basic_info_"
     basic_info = pd.read_csv(basic_file)
 
     # 所有班级，直接合并分班的数据
@@ -431,10 +459,11 @@ def pro_basicInfo():
 
     # 分班级
     for i in range(1, 16):
-        master_file_class = pd.read_csv(master_file+str(i)+'.csv')
-        store_file_class = store_file+str(i)+'.csv'
-        result = pd.merge(master_file_class, basic_info,
-                          left_on='Unnamed: 0', right_on='student_ID')
+        master_file_class = pd.read_csv(master_file + str(i) + ".csv")
+        store_file_class = store_file + str(i) + ".csv"
+        result = pd.merge(
+            master_file_class, basic_info, left_on="Unnamed: 0", right_on="student_ID"
+        )
         # print(result)
         df = pd.concat([df, result], ignore_index=True)
         result.to_csv(store_file_class)
@@ -443,22 +472,27 @@ def pro_basicInfo():
     # 将'top','mid','low'的信息写入aaa.csv
 
     # 首先根据总知识点掌握情况将学生分为：top/mid/low三类
-    data = df.sort_values(by='all_knowledge',
+    data = df.sort_values(by="all_knowledge",
                           ascending=False).reset_index(drop=True)
     top_count = 408
     mid_count = 954
     low_count = 1363
     # 添加'rank'列
-    data['rank'] = 'low'
-    data.loc[:top_count, 'rank'] = 'top'
-    data.loc[top_count+1:mid_count, 'rank'] = 'mid'
-    data.to_csv('./data/classes/basic_info/basic_info_all.csv')
-    all_df = pd.read_csv('data/detail/aaa.csv')
-    all_df = all_df.drop(columns=['Unnamed: 0_x', 'Unnamed: 0_y', 'rank'])
+    data["rank"] = "low"
+    data.loc[:top_count, "rank"] = "top"
+    data.loc[top_count + 1: mid_count, "rank"] = "mid"
+    data.to_csv("./data/classes/basic_info/basic_info_all.csv")
+    all_df = pd.read_csv("data/detail/aaa.csv")
+    all_df = all_df.drop(columns=["Unnamed: 0_x", "Unnamed: 0_y", "rank"])
     # 使用 merge 函数拼接两个 DataFrame 的特定列
-    merged_df = pd.merge(all_df, data[['Unnamed: 0', 'rank']],
-                         left_on='student_ID', right_on='Unnamed: 0', how='left')
-    merged_df.to_csv('data/detail/aaa.csv')
+    merged_df = pd.merge(
+        all_df,
+        data[["Unnamed: 0", "rank"]],
+        left_on="student_ID",
+        right_on="Unnamed: 0",
+        how="left",
+    )
+    merged_df.to_csv("data/detail/aaa.csv")
 
 
 # 掌握程度衡量权重变化后，top,mid,low的学生可能会变化，因次要重新计算
@@ -479,38 +513,90 @@ def pro_timeStudentInfo():
 
     # 不同的时间段分类三类
     # 每一类对应的时间段
-    tag_to_time = {0: ['10-1-Morning', '10-1-Afternoon', '10-0-Morning', '10-0-Afternoon', '11-1-Morning', '11-1-Afternoon', '11-0-Morning', '11-0-Afternoon', '12-1-Afternoon'],
-                   1: ['9-1-Evening', '9-0-Evening', '10-1-Evening', '10-0-Evening', '11-1-Evening', '11-0-Evening', '12-1-Evening', '12-0-Evening', '1-1-Dawn', '1-1-Morning',
-                       '1-1-Afternoon', '1-0-Dawn', '1-0-Morning', '1-0-Afternoon', '1-0-Evening'],
-                   2: ['9-1-Dawn', '9-1-Morning', '9-1-Afternoon', '9-0-Dawn', '9-0-Morning', '9-0-Afternoon', '10-1-Dawn', '10-0-Dawn', '11-1-Dawn', '11-0-Dawn', '12-1-Dawn',
-                       '12-1-Morning', '12-0-Dawn', '12-0-Morning', '12-0-Afternoon']}
+    tag_to_time = {
+        0: [
+            "10-1-Morning",
+            "10-1-Afternoon",
+            "10-0-Morning",
+            "10-0-Afternoon",
+            "11-1-Morning",
+            "11-1-Afternoon",
+            "11-0-Morning",
+            "11-0-Afternoon",
+            "12-1-Afternoon",
+        ],
+        1: [
+            "9-1-Evening",
+            "9-0-Evening",
+            "10-1-Evening",
+            "10-0-Evening",
+            "11-1-Evening",
+            "11-0-Evening",
+            "12-1-Evening",
+            "12-0-Evening",
+            "1-1-Dawn",
+            "1-1-Morning",
+            "1-1-Afternoon",
+            "1-0-Dawn",
+            "1-0-Morning",
+            "1-0-Afternoon",
+            "1-0-Evening",
+        ],
+        2: [
+            "9-1-Dawn",
+            "9-1-Morning",
+            "9-1-Afternoon",
+            "9-0-Dawn",
+            "9-0-Morning",
+            "9-0-Afternoon",
+            "10-1-Dawn",
+            "10-0-Dawn",
+            "11-1-Dawn",
+            "11-0-Dawn",
+            "12-1-Dawn",
+            "12-1-Morning",
+            "12-0-Dawn",
+            "12-0-Morning",
+            "12-0-Afternoon",
+        ],
+    }
     # 每个月对应的是否工作日天数
-    days_to = {'1-0': 7, '1-1': 18, '9-0': 10, '9-1': 20, '10-0': 14,
-               '10-1': 17, '11-0': 8, '11-1': 22, '12-0': 10, '12-1': 21}
+    days_to = {
+        "1-0": 7,
+        "1-1": 18,
+        "9-0": 10,
+        "9-1": 20,
+        "10-0": 14,
+        "10-1": 17,
+        "11-0": 8,
+        "11-1": 22,
+        "12-0": 10,
+        "12-1": 21,
+    }
 
-    df = pd.read_csv('data/detail/aaa.csv')
+    df = pd.read_csv("data/detail/aaa.csv")
 
-    groups = df.groupby(['month', 'is_weekday', 'time_period'])
+    groups = df.groupby(["month", "is_weekday", "time_period"])
     re = {}
     for g in groups:
-        key = '-'.join(str(x) for x in g[0])
+        key = "-".join(str(x) for x in g[0])
         re[key] = {}
-        days = days_to[str(g[0][0])+'-'+str(g[0][1])]
+        days = days_to[str(g[0][0]) + "-" + str(g[0][1])]
         # print(g[1])  # 行414
-        rank_group = g[1].groupby('rank')
+        rank_group = g[1].groupby("rank")
         for rank in rank_group:
             # 提交次数/时间段天数
-            d1 = len(rank[1])/days
+            d1 = len(rank[1]) / days
             # 活跃天数/时间段天数；题目数
-            id_group = rank[1].groupby('student_ID')
+            id_group = rank[1].groupby("student_ID")
             active_days = 0
             title_num = 0
             for id in id_group:
                 active_days = active_days + \
-                    len(id[1]['date'].value_counts().index)
+                    len(id[1]["date"].value_counts().index)
                 title_num = title_num + \
-                    len(id[1]['title_ID'].value_counts().index)
-            re[key][rank[0]] = [d1, active_days/days, title_num/days]
+                    len(id[1]["title_ID"].value_counts().index)
+            re[key][rank[0]] = [d1, active_days / days, title_num / days]
 
         # for stu in students_to.keys():
         #     students = g[1][g[1]['student_ID'].isin(students_to[stu])]
@@ -535,8 +621,11 @@ def pro_timeStudentInfo():
             combine_time[tag].append(re[time])
     # print(combine_time)
 
-    get_add = {0: {'top': [], 'mid': [], 'low': []}, 1: {'top': [],
-                                                         'mid': [], 'low': []}, 2: {'top': [], 'mid': [], 'low': []}}
+    get_add = {
+        0: {"top": [], "mid": [], "low": []},
+        1: {"top": [], "mid": [], "low": []},
+        2: {"top": [], "mid": [], "low": []},
+    }
     # get_add={0:{'top':[[],[]],'mid':[],'low':[]}}
     for tag in combine_time.keys():
         for item in combine_time[tag]:
@@ -545,17 +634,19 @@ def pro_timeStudentInfo():
                 get_add[tag][stu].append(item[stu])
     # print(get_add)
 
-    students_nums = {'top': 409, 'mid': 546, 'low': 409}
+    students_nums = {"top": 409, "mid": 546, "low": 409}
     # 计算二维列表平均值，再除以学生人数,最终结果
     final_re = {}
     for tag in get_add.keys():
         final_re[tag] = {}
         for stu in get_add[tag].keys():
-            final_re[tag][stu] = [sum(col) / (len(col)*students_nums[stu])
-                                  for col in zip(*get_add[tag][stu])]
+            final_re[tag][stu] = [
+                sum(col) / (len(col) * students_nums[stu])
+                for col in zip(*get_add[tag][stu])
+            ]
     # print(final_re)
 
-    tag_label = {0: '高峰型', 1: '低峰型', 2: '平均型'}
+    tag_label = {0: "高峰型", 1: "低峰型", 2: "平均型"}
     re_file = {}
     for key, value in final_re.items():
         re_file[tag_label[key]] = {}
@@ -564,19 +655,19 @@ def pro_timeStudentInfo():
     # print(re_file)
 
     write_dict_to_json(
-        'data/detail/time_cluster_student_analysis.json', re_file)
+        "data/detail/time_cluster_student_analysis.json", re_file)
 
 
 # 掌握程度衡量权重变化后，top,mid,low的学生可能会变化，而且掌握程度也变了，因次要重新计算
 
 
 def pro_cluster():
-    file = 'data/cluster/student_more_info'
-    knowledge_file = 'data/classes/month_data/month_knowledge/student_master_knowledge_'
-    df = pd.read_csv('data/classes/basic_info/basic_info_all.csv')
+    file = "data/cluster/student_more_info"
+    knowledge_file = "data/classes/month_data/month_knowledge/student_master_knowledge_"
+    df = pd.read_csv("data/classes/basic_info/basic_info_all.csv")
     for month in [9, 10, 11, 12, 1]:
-        file_name = file+str(month)+'.json'
-        knowledge_file_name = knowledge_file+str(month)+'.csv'
+        file_name = file + str(month) + ".json"
+        knowledge_file_name = knowledge_file + str(month) + ".csv"
         # print(file_name)
         data = read_json(file_name)
         df_k = pd.read_csv(knowledge_file_name)
@@ -584,9 +675,10 @@ def pro_cluster():
         # print(data)
 
         for item in data:
-            item['master'] = df_k[df_k['Unnamed: 0']
-                                  == item['key']]['all_knowledge'].to_list()[0]
-            item['rank'] = df[df['Unnamed: 0'] == item['key']]['rank'].to_list()[
+            item["master"] = df_k[df_k["Unnamed: 0"] == item["key"]][
+                "all_knowledge"
+            ].to_list()[0]
+            item["rank"] = df[df["Unnamed: 0"] == item["key"]]["rank"].to_list()[
                 0]
         write_dict_to_json(file_name, data)
 
@@ -687,14 +779,14 @@ def setWeightInfo():
     w2 = request.json.get("correct")  # post
     w3 = request.json.get("time")  # post
     w4 = request.json.get("memory")  # post
-    w = {'w1': w1, 'w2': w2, 'w3': w3, 'w4': w4}
+    w = {"w1": w1, "w2": w2, "w3": w3, "w4": w4}
 
     # 分班计算获取题目掌握程度
-    get_all_class_master_title('master', w)
+    get_all_class_master_title("master", w)
     # 分班级获取学生对知识点的掌握程度
-    get_all_class_master_knowledge('knowledge')
+    get_all_class_master_knowledge("knowledge")
     # 获取所有班级对子知识点的掌握程度
-    get_all_class_master_knowledge('sub_knowledge')
+    get_all_class_master_knowledge("sub_knowledge")
 
     # 处理basicInfo所需数据
     pro_basicInfo()
@@ -703,7 +795,7 @@ def setWeightInfo():
     pro_cluster()
     # 处理时间模式右下象形柱图数据(这一步处理好像有点耗时)
     pro_timeStudentInfo()
-    return ('success')
+    return "success"
 
 
 @app.route("/basicInfo", methods=["GET", "POST"])
@@ -947,8 +1039,7 @@ def knowledgeMasterInfo():
 
     sub_knowledge = pd.read_csv(store_file2 + str(id) + ".csv")
     df_sub_knowledge = pd.concat(
-        [df_sub_knowledge, sub_knowledge], ignore_index=True
-    )
+        [df_sub_knowledge, sub_knowledge], ignore_index=True)
 
     # 题目得分率
     if title_value == "score":
@@ -1354,48 +1445,53 @@ def timeStudentInfo():
 
     return [result, result2]
 
+
 # 时间模式下，雷达图数据
 
 
 @app.route("/timeRadarInfo", methods=["GET", "POST"])
 def timeRadarInfo():
     # 首先根据总知识点掌握情况将学生分为：top/mid/low三类
-    file = 'data/classes/basic_info/basic_info_all.csv'
-    data = pd.read_csv(file).sort_values(by='all_knowledge',
-                                         ascending=False).reset_index(drop=True)
+    file = "data/classes/basic_info/basic_info_all.csv"
+    data = (
+        pd.read_csv(file)
+        .sort_values(by="all_knowledge", ascending=False)
+        .reset_index(drop=True)
+    )
     # 总共1364,分为409，546，409，
     # print(len(data['all_knowledge']))
-    top = list(data.loc[0:408, 'Unnamed: 0'].values)
-    mid = list(data.loc[409:954, 'Unnamed: 0'].values)
-    low = list(data.loc[955:1363, 'Unnamed: 0'].values)
-    students_to = {'top': top, 'mid': mid, 'low': low}
+    top = list(data.loc[0:408, "Unnamed: 0"].values)
+    mid = list(data.loc[409:954, "Unnamed: 0"].values)
+    low = list(data.loc[955:1363, "Unnamed: 0"].values)
+    students_to = {"top": top, "mid": mid, "low": low}
     # print(students_to)
     # write_dict_to_json('student_top_low.json', students_to)
 
     # 需要计算所有题平均正确率
     score_rate = pd.read_csv(
-        'data/classes/correct_rate/correct_rate_class_all.csv')
+        "data/classes/correct_rate/correct_rate_class_all.csv")
     score_rate = score_rate.fillna(0)
-    score_rate['avg'] = score_rate.iloc[:, 1:].mean(axis=1)
+    score_rate["avg"] = score_rate.iloc[:, 1:].mean(axis=1)
 
-    df = pd.read_csv('data/detail/aaa.csv')
+    df = pd.read_csv("data/detail/aaa.csv")
 
     result = {}
     for stu in students_to.keys():
         # 掌握程度
-        students = data[data['Unnamed: 0'].isin(students_to[stu])]
+        students = data[data["Unnamed: 0"].isin(students_to[stu])]
         # print(students)
-        avg_k = sum(students['all_knowledge'].to_list())/len(students_to[stu])
+        avg_k = sum(students["all_knowledge"].to_list()) / \
+            len(students_to[stu])
         # 得分率
-        students = score_rate[score_rate['Unnamed: 0'].isin(students_to[stu])]
-        avg_s = sum(students['avg'].to_list())/len(students_to[stu])
+        students = score_rate[score_rate["Unnamed: 0"].isin(students_to[stu])]
+        avg_s = sum(students["avg"].to_list()) / len(students_to[stu])
         # 活跃度
-        students = df[df['student_ID'].isin(students_to[stu])]
-        id_group = students.groupby('student_ID')
+        students = df[df["student_ID"].isin(students_to[stu])]
+        id_group = students.groupby("student_ID")
         active_days = 0
         for id in id_group:
-            active_days = active_days+len(id[1]['date'].value_counts().index)
-        active_days_avg = active_days/len(students_to[stu])
+            active_days = active_days + len(id[1]["date"].value_counts().index)
+        active_days_avg = active_days / len(students_to[stu])
 
         result[stu] = [avg_k, avg_s, active_days_avg]
     return result
