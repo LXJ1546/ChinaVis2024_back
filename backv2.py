@@ -12,7 +12,7 @@ from collections import Counter
 app = Flask(__name__)
 # 允许跨域传输数据
 CORS(app)
-app.config['GREETING'] = 'Hello, World!'
+app.config["GREETING"] = "Hello, World!"
 # app.config['corr'] = []
 
 
@@ -119,8 +119,7 @@ def get_student_master_title(case, f_name, f_store, w):
                         for key in title_timeconsume_count[title].keys():
                             if int(float(key)) <= int(item[6]):
                                 temp_sum = (
-                                    temp_sum +
-                                    title_timeconsume_count[title][key]
+                                    temp_sum + title_timeconsume_count[title][key]
                                 )
                         timeconsume_rank_temp = temp_sum / total_correct_count
 
@@ -128,8 +127,7 @@ def get_student_master_title(case, f_name, f_store, w):
                         temp_sum = 0
                         for key in title_memory_count[title].keys():
                             if int(key) <= item[5]:
-                                temp_sum = temp_sum + \
-                                    title_memory_count[title][key]
+                                temp_sum = temp_sum + title_memory_count[title][key]
                         memory_rank_temp = temp_sum / total_correct_count
                         memory_timeconsume_rank_candidata.append(
                             [memory_rank_temp, timeconsume_rank_temp]
@@ -326,8 +324,7 @@ def get_student_master_knowledge_month(param):
         # print(done_knowledge)
         master = 0
         for k in done_knowledge.keys():
-            master = master + row[k] * done_knowledge[k] / \
-                sum(done_knowledge.values())
+            master = master + row[k] * done_knowledge[k] / sum(done_knowledge.values())
         return master
 
     file = param["student_master_title"]
@@ -473,15 +470,14 @@ def pro_basicInfo():
     # 将'top','mid','low'的信息写入aaa.csv
 
     # 首先根据总知识点掌握情况将学生分为：top/mid/low三类
-    data = df.sort_values(by="all_knowledge",
-                          ascending=False).reset_index(drop=True)
+    data = df.sort_values(by="all_knowledge", ascending=False).reset_index(drop=True)
     top_count = 408
     mid_count = 954
     low_count = 1363
     # 添加'rank'列
     data["rank"] = "low"
     data.loc[:top_count, "rank"] = "top"
-    data.loc[top_count + 1: mid_count, "rank"] = "mid"
+    data.loc[top_count + 1 : mid_count, "rank"] = "mid"
     data.to_csv("./data/classes/basic_info/basic_info_all.csv")
     all_df = pd.read_csv("data/detail/aaa.csv")
     all_df = all_df.drop(columns=["Unnamed: 0_x", "Unnamed: 0_y", "rank"])
@@ -593,10 +589,8 @@ def pro_timeStudentInfo():
             active_days = 0
             title_num = 0
             for id in id_group:
-                active_days = active_days + \
-                    len(id[1]["date"].value_counts().index)
-                title_num = title_num + \
-                    len(id[1]["title_ID"].value_counts().index)
+                active_days = active_days + len(id[1]["date"].value_counts().index)
+                title_num = title_num + len(id[1]["title_ID"].value_counts().index)
             re[key][rank[0]] = [d1, active_days / days, title_num / days]
 
         # for stu in students_to.keys():
@@ -655,8 +649,7 @@ def pro_timeStudentInfo():
             re_file[tag_label[key]][i] = j
     # print(re_file)
 
-    write_dict_to_json(
-        "data/detail/time_cluster_student_analysis.json", re_file)
+    write_dict_to_json("data/detail/time_cluster_student_analysis.json", re_file)
 
 
 # 掌握程度衡量权重变化后，top,mid,low的学生可能会变化，而且掌握程度也变了，因次要重新计算
@@ -679,9 +672,9 @@ def pro_cluster():
             item["master"] = df_k[df_k["Unnamed: 0"] == item["key"]][
                 "all_knowledge"
             ].to_list()[0]
-            item["rank"] = df[df["Unnamed: 0"] == item["key"]]["rank"].to_list()[
-                0]
+            item["rank"] = df[df["Unnamed: 0"] == item["key"]]["rank"].to_list()[0]
         write_dict_to_json(file_name, data)
+
 
 # 掌握程度衡量权重变化后，top,mid,low的学生可能会变化，而且掌握程度也变了，因次要重新计算
 
@@ -689,10 +682,12 @@ def pro_cluster():
 def pro_corr():
 
     def get_knowledge_master_v4(mon):
-        student_to_tag = 'data/cluster/student_tag_dict' + \
-            str(mon)+'.json'
-        knowledge_ = 'data/knowledge/month_knowledge/student_master_knowledge_' + \
-            str(mon)+'.csv'
+        student_to_tag = "data/cluster/student_tag_dict" + str(mon) + ".json"
+        knowledge_ = (
+            "data/knowledge/month_knowledge/student_master_knowledge_"
+            + str(mon)
+            + ".csv"
+        )
 
         tag = read_json(student_to_tag)
         knowledge_master = pd.read_csv(knowledge_)
@@ -701,30 +696,37 @@ def pro_corr():
         re = {0: [], 1: [], 2: []}
         for id, value in tag.items():
             # 3表示没有做题
-            if (value != 3):
-                knowledge = knowledge_master[knowledge_master['Unnamed: 0']
-                                             == id]['all_knowledge'].tolist()[0]
+            if value != 3:
+                knowledge = knowledge_master[knowledge_master["Unnamed: 0"] == id][
+                    "all_knowledge"
+                ].tolist()[0]
 
                 re[value].append(knowledge)
         # print(re)
         return re
 
     def read_feature_encoder_v5(mon):
-        month = {'9': 0, '10': 1, '11': 2, '12': 3, '1': 4}
+        month = {"9": 0, "10": 1, "11": 2, "12": 3, "1": 4}
         # 根据聚类后的标签，将原来的特征矩阵按照标签进行分组
         # 原始特征矩阵
-        feature = read_json(
-            'data/cluster/month_student_feature_new.json')
+        feature = read_json("data/cluster/month_student_feature_new.json")
 
-        student_to_tag = 'data/cluster/month_student_to_tag/student_to_tag' + \
-            str(mon)+'.json'
+        student_to_tag = (
+            "data/cluster/month_student_to_tag/student_to_tag" + str(mon) + ".json"
+        )
         tag = read_json(student_to_tag)
 
         # 注意类别数量
         re = {0: [], 1: [], 2: []}
         for i in range(len(tag)):
-            re[tag[i][1]].append([feature[month[str(mon)]][i][0], feature[month[str(
-                mon)]][i][1], feature[month[str(mon)]][i][3], feature[month[str(mon)]][i][2]])
+            re[tag[i][1]].append(
+                [
+                    feature[month[str(mon)]][i][0],
+                    feature[month[str(mon)]][i][1],
+                    feature[month[str(mon)]][i][3],
+                    feature[month[str(mon)]][i][2],
+                ]
+            )
         return re
 
     def get_corr_v5(mon):
@@ -732,7 +734,7 @@ def pro_corr():
         master = get_knowledge_master_v4(mon)
 
         # feature_type = ['submit', 'active', 'correct', 'title']
-        feature_type = ['submit', 'active', 'title', 'correct']
+        feature_type = ["submit", "active", "title", "correct"]
 
         # # 创建示例数据
         # data = {'变量1': [1, 2, 3, 4, 5],
@@ -747,22 +749,23 @@ def pro_corr():
             arr = np.array(feature[key]).T
             # 获取每一列的值
             re = {}
-            re['knowledge'] = master[key]
+            re["knowledge"] = master[key]
 
             for i in range(len(arr)):
                 re[feature_type[i]] = list(arr[i])
             # print(re)
             df = pd.DataFrame(re)
             # df['month'] = np.arange(5).repeat(mon)
-            new_df = df.corr()['knowledge']
-            corr_re.append([new_df['submit'], new_df['active'],
-                            new_df['title'], new_df['correct']])
+            new_df = df.corr()["knowledge"]
+            corr_re.append(
+                [new_df["submit"], new_df["active"], new_df["title"], new_df["correct"]]
+            )
             # new_df['tag'] = [key, key, key, key, key]
             # new_df['month'] = [mon, mon, mon, mon, mon]
             # df_re = pd.concat([df_re, new_df], ignore_index=True)
         # 处理格式
         format_re = []
-        if (mon == 10):
+        if mon == 10:
             # 交换第一个和最后一个元素
             corr_re[0], corr_re[-1] = corr_re[-1], corr_re[0]
 
@@ -770,36 +773,36 @@ def pro_corr():
             for i in range(len(corr_re)):
                 format_re.append([j, i, corr_re[i][j].round(3)])
 
-        return (format_re)
+        return format_re
 
     def time_period_corr():
         # 时间段
-        period = ['Dawn', 'Morning', 'Afternoon', 'Evening']
-        feature = read_json(
-            'data/cluster/time_cluster_original_feature.json')
+        period = ["Dawn", "Morning", "Afternoon", "Evening"]
+        feature = read_json("data/cluster/time_cluster_original_feature.json")
         re = {}
         for i in range(len(feature)):
             p = period[i % 4]
             if p in re:
-                re[p].append([feature[i][3], feature[i][0],
-                              feature[i][1], feature[i][2]])
+                re[p].append(
+                    [feature[i][3], feature[i][0], feature[i][1], feature[i][2]]
+                )
             else:
                 re[p] = []
-                re[p].append([feature[i][3], feature[i][0],
-                              feature[i][1], feature[i][2]])
+                re[p].append(
+                    [feature[i][3], feature[i][0], feature[i][1], feature[i][2]]
+                )
 
         # print(re)
 
-        feature_type = ['correct', 'submit', 'active',  'title']
+        feature_type = ["correct", "submit", "active", "title"]
         # 每一类别分别计算
         df_re = pd.DataFrame()
         corr_re = []
         for key in re.keys():
-            print(key, '---------------------------------------')
+            print(key, "---------------------------------------")
             df = pd.DataFrame(re[key], columns=feature_type)
-            new_df = df.corr()['correct']
-            corr_re.append(
-                [new_df['submit'], new_df['active'], new_df['title']])
+            new_df = df.corr()["correct"]
+            corr_re.append([new_df["submit"], new_df["active"], new_df["title"]])
             # # new_df['tag'] = [key, key, key, key]
             # df_re = pd.concat([df_re, new_df])  # , ignore_index=True)
 
@@ -808,7 +811,7 @@ def pro_corr():
             for i in range(len(corr_re)):
                 format_re.append([j, i, corr_re[i][j].round(3)])
         # print(format_re)
-        return (format_re)
+        return format_re
 
     result = []
     for month in [9, 10, 11, 12, 1]:
@@ -816,7 +819,8 @@ def pro_corr():
         data = get_corr_v5(month)
         result.append(data)
     result.append(time_period_corr())
-    write_dict_to_json('data/detail/corr.json', result)
+    write_dict_to_json("data/detail/corr.json", result)
+
 
 # 处理雷达图数据
 
@@ -839,8 +843,7 @@ def pro_radar():
     # write_dict_to_json('student_top_low.json', students_to)
 
     # 需要计算所有题平均正确率
-    score_rate = pd.read_csv(
-        "data/classes/correct_rate/correct_rate_class_all.csv")
+    score_rate = pd.read_csv("data/classes/correct_rate/correct_rate_class_all.csv")
     score_rate = score_rate.fillna(0)
     score_rate["avg"] = score_rate.iloc[:, 1:].mean(axis=1)
 
@@ -851,8 +854,7 @@ def pro_radar():
         # 掌握程度
         students = data[data["Unnamed: 0"].isin(students_to[stu])]
         # print(students)
-        avg_k = sum(students["all_knowledge"].to_list()) / \
-            len(students_to[stu])
+        avg_k = sum(students["all_knowledge"].to_list()) / len(students_to[stu])
         # 得分率
         students = score_rate[score_rate["Unnamed: 0"].isin(students_to[stu])]
         avg_s = sum(students["avg"].to_list()) / len(students_to[stu])
@@ -865,63 +867,77 @@ def pro_radar():
         active_days_avg = active_days / len(students_to[stu])
 
         result[stu] = [avg_k, avg_s, active_days_avg]
-    write_dict_to_json('data/detail/radar.json', result)
+    write_dict_to_json("data/detail/radar.json", result)
+
 
 # 时间模式下，主图下方视图数据
 
 
 def pro_timeEvolution():
     # 类型映射
-    type_to = {0: '高峰型', 1: '低峰型', 2: '平均型'}
-    month_to = {9: '9月', 10: '10月', 11: '11月', 12: '12月', 1: '1月'}
-    period_to = {'Dawn': '凌晨', 'Morning': '上午',
-                 'Afternoon': '下午', 'Evening': '晚上'}
-    weekday_to = {1: 'weekday', 0: 'weekoff'}
+    type_to = {0: "高峰型", 1: "低峰型", 2: "平均型"}
+    month_to = {9: "9月", 10: "10月", 11: "11月", 12: "12月", 1: "1月"}
+    period_to = {
+        "Dawn": "凌晨",
+        "Morning": "上午",
+        "Afternoon": "下午",
+        "Evening": "晚上",
+    }
+    weekday_to = {1: "weekday", 0: "weekoff"}
 
-    tags = read_json('data/cluster/time_cluster_label.json')
-    info = pd.read_csv('data/detail/aaa.csv')
-    time_feature = read_json('data/cluster/time_cluster_original_feature.json')
+    tags = read_json("data/cluster/time_cluster_label.json")
+    info = pd.read_csv("data/detail/aaa.csv")
+    time_feature = read_json("data/cluster/time_cluster_original_feature.json")
 
     # 计算平均值
     result = {}
     i = 0
-    for month in ['9', '10', '11', '12', '1']:
+    for month in ["9", "10", "11", "12", "1"]:
         # 工作日、休息日
         for weekday in [1, 0]:
             # 时间段
-            for period in ['Dawn', 'Morning', 'Afternoon', 'Evening']:
-                key = month+'-'+period
+            for period in ["Dawn", "Morning", "Afternoon", "Evening"]:
+                key = month + "-" + period
                 if key not in result:
                     result[key] = []
                 result[key].append(time_feature[i][3])
-                i = i+1
+                i = i + 1
     # 使用字典推导式计算平均值并重新赋值给键
-    averages = {key: sum(values) / len(values)
-                for key, values in result.items()}
+    averages = {key: sum(values) / len(values) for key, values in result.items()}
     # print(averages)
 
     # 依次9到12月
     i = 0
-    result = {'weekday': [], 'weekoff': []}
+    result = {"weekday": [], "weekoff": []}
     for month in month_to.keys():
         # 工作日、休息日
         for weekday in weekday_to.keys():
             # 时间段
             for period in period_to.keys():
                 nums = []
-                for rank in ['top', 'mid', 'low']:
-                    students = info[(info['month'] == month)
-                                    & (info['is_weekday'] == weekday) & (info['rank'] == rank)]
-                    nums.append(len(students.groupby('student_ID')))
+                for rank in ["top", "mid", "low"]:
+                    students = info[
+                        (info["month"] == month)
+                        & (info["is_weekday"] == weekday)
+                        & (info["rank"] == rank)
+                    ]
+                    nums.append(len(students.groupby("student_ID")))
 
                 result[weekday_to[weekday]].append(
-                    [str(month)+'月-'+period_to[period], type_to[tags[i]], nums, round(time_feature[i][3], 4), round(averages[str(month)+'-'+period], 4)])
+                    [
+                        str(month) + "月-" + period_to[period],
+                        type_to[tags[i]],
+                        nums,
+                        round(time_feature[i][3], 4),
+                        round(averages[str(month) + "-" + period], 4),
+                    ]
+                )
                 # print(result)
 
-                i = i+1
+                i = i + 1
     # print(result)
     # return(result)
-    write_dict_to_json('data/detail/time_evolution.json', result)
+    write_dict_to_json("data/detail/time_evolution.json", result)
 
 
 @app.route("/setWeightInfo", methods=["GET", "POST"])
@@ -1005,8 +1021,7 @@ def basicInfo():
             result_each.append(
                 [
                     "class" + str(i),
-                    master_file_class["all_knowledge"].mean(
-                        numeric_only=True).round(4),
+                    master_file_class["all_knowledge"].mean(numeric_only=True).round(4),
                     [high, mid, low],
                 ]
             )
@@ -1039,14 +1054,11 @@ def basicInfo():
 def titleMasterInfo():
     id = request.json.get("data")  # post
 
-    master_file = "./data/classes/title_master/student_master_title_" + \
-        str(id) + ".csv"
+    master_file = "./data/classes/title_master/student_master_title_" + str(id) + ".csv"
     score_file = (
-        "./data/classes/title_score_rate/student_master_title_" +
-        str(id) + ".csv"
+        "./data/classes/title_score_rate/student_master_title_" + str(id) + ".csv"
     )
-    correct_file = "./data/classes/correct_rate/correct_rate_class_" + \
-        str(id) + ".csv"
+    correct_file = "./data/classes/correct_rate/correct_rate_class_" + str(id) + ".csv"
 
     master_info = pd.read_csv(master_file).mean(numeric_only=True).round(4)
     score_info = pd.read_csv(score_file).mean(numeric_only=True).round(4)
@@ -1142,17 +1154,13 @@ def titleTimeMemoryInfo():
 
     re = {}
     time_dic = dict(
-        sorted(time_data[title].items(),
-               key=lambda d: float(d[0]), reverse=False)
+        sorted(time_data[title].items(), key=lambda d: float(d[0]), reverse=False)
     )
     memory_dic = dict(
-        sorted(memory_data[title].items(),
-               key=lambda d: float(d[0]), reverse=False)
+        sorted(memory_data[title].items(), key=lambda d: float(d[0]), reverse=False)
     )
-    re["time"] = {"keys": list(time_dic.keys()),
-                  "value": list(time_dic.values())}
-    re["memory"] = {"keys": list(memory_dic.keys()),
-                    "value": list(memory_dic.values())}
+    re["time"] = {"keys": list(time_dic.keys()), "value": list(time_dic.values())}
+    re["memory"] = {"keys": list(memory_dic.keys()), "value": list(memory_dic.values())}
 
     return re
 
@@ -1196,8 +1204,7 @@ def knowledgeMasterInfo():
     df_knowledge = pd.concat([df_knowledge, knowledge], ignore_index=True)
 
     sub_knowledge = pd.read_csv(store_file2 + str(id) + ".csv")
-    df_sub_knowledge = pd.concat(
-        [df_sub_knowledge, sub_knowledge], ignore_index=True)
+    df_sub_knowledge = pd.concat([df_sub_knowledge, sub_knowledge], ignore_index=True)
 
     # 题目得分率
     if title_value == "score":
@@ -1302,11 +1309,9 @@ def learnCalendarInfo():
             result_status = date[1]["state"].value_counts(normalize=True)
             correct_rate = 0
             if "Absolutely_Correct" in result_status.index:
-                correct_rate = correct_rate + \
-                    result_status["Absolutely_Correct"]
+                correct_rate = correct_rate + result_status["Absolutely_Correct"]
             if "Partially_Correct" in result_status.index:
-                correct_rate = correct_rate + \
-                    result_status["Partially_Correct"]
+                correct_rate = correct_rate + result_status["Partially_Correct"]
             re[g[0]][strDate].append(correct_rate)
             # 答题数
             title_num = len(date[1]["title_ID"].value_counts().index)
@@ -1340,15 +1345,16 @@ def personalSubmitInfo():
     student_id = request.json.get("data")  # 学生id列表
     learning_date = request.json.get("date")
     # 用时分布
-    title_timeconsume_count = read_json(
-        "./data/detail/title_timeconsume_count.json")
+    title_timeconsume_count = read_json("./data/detail/title_timeconsume_count.json")
     # 内存分布
     title_memory_count = read_json("./data/detail/title_memory_count.json")
 
     file = "./data/detail/aaa.csv"
     df = pd.read_csv(file)
-    info = df[(df["student_ID"] == student_id) & (
-        df["date"] == learning_date.replace("-", "/"))]
+    info = df[
+        (df["student_ID"] == student_id)
+        & (df["date"] == learning_date.replace("-", "/"))
+    ]
     # print(info)
     title_g = info.groupby("title_ID")
     re = {}
@@ -1363,14 +1369,12 @@ def personalSubmitInfo():
             answer_state = row["state"]
             # 完全正确的用时内存分布
             if answer_state == "Absolutely_Correct":
-                total_correct_count = sum(
-                    title_timeconsume_count[g[0]].values())
+                total_correct_count = sum(title_timeconsume_count[g[0]].values())
                 # 用时
                 temp_sum = 0
                 for key in title_timeconsume_count[g[0]].keys():
                     if int(float(key)) <= int(row["timeconsume"]):
-                        temp_sum = temp_sum + \
-                            title_timeconsume_count[g[0]][key]
+                        temp_sum = temp_sum + title_timeconsume_count[g[0]][key]
                 timeconsume_rank_temp = temp_sum / total_correct_count
                 re["Q_" + g[0][9:12]][-1].append(timeconsume_rank_temp)
 
@@ -1566,13 +1570,13 @@ def onePeriodInfo():
         # 如果是9，1，月，需要表示为09，01
         strDate = str(g[0]).replace("/", "-")
         # 使用split()函数将字符串拆分为年、月、日
-        year, month, day = strDate.split('-')
+        year, month, day = strDate.split("-")
 
         # 使用zfill()函数将月份格式化为两位数
         month = month.zfill(2)
 
         # 格式化后的字符串
-        strDate = f'{year}-{month}-{day}'
+        strDate = f"{year}-{month}-{day}"
 
         # 类型依次是针对、多样、尝试，012
         # 十月标签顺序不一样要修改210
@@ -1622,14 +1626,14 @@ def timeStudentInfo():
 
 @app.route("/timeRadarInfo", methods=["GET", "POST"])
 def timeRadarInfo():
-    data = read_json('data/detail/radar.json')
+    data = read_json("data/detail/radar.json")
     return data
 
 
 @app.route("/timeEvolutionInfo", methods=["GET", "POST"])
 def timeEvolutionInfo():
-    data = read_json('data/detail/time_evolution.json')
-    result = [data['weekday'], data['weekoff']]
+    data = read_json("data/detail/time_evolution.json")
+    result = [data["weekday"], data["weekoff"]]
 
     return result
 
@@ -1637,7 +1641,7 @@ def timeEvolutionInfo():
 # 协助获取聚类所需的坐标数据以及对应的标签数据
 
 
-def group_cluster_data(file_path1, file_path2, num=0):
+def group_cluster_data(file_path1, file_path2, classNum, num=0):
     with open(file_path1, "r") as f:
         cluster_features = json.load(f)
     with open(file_path2, "r") as f:
@@ -1667,6 +1671,17 @@ def group_cluster_data(file_path1, file_path2, num=0):
             elif cluster_label[index] == 2:
                 features["label"] = "平均型"
         grouped_data[cluster_label[index]].append(features)
+    if classNum != "all" and num != -1:
+        # 使用列表推导式对三个列表进行筛选
+        grouped_data[0] = [
+            item for item in grouped_data[0] if item["class"] == classNum
+        ]
+        grouped_data[1] = [
+            item for item in grouped_data[1] if item["class"] == classNum
+        ]
+        grouped_data[2] = [
+            item for item in grouped_data[2] if item["class"] == classNum
+        ]
     # 10是特殊情况
     if num == 10:
         # 交换第一个元素和第三个元素的位置
@@ -1675,8 +1690,9 @@ def group_cluster_data(file_path1, file_path2, num=0):
 
 
 # 聚类数据
-@app.route("/clusterData")
+@app.route("/clusterData", methods=["GET", "POST"])
 def cluster_data():
+    classNum = request.json.get("classNum")
     feature_path9 = "data/cluster/student_more_info9.json"
     label_path9 = "data/cluster/cluster_label9.json"
     feature_path10 = "data/cluster/student_more_info10.json"
@@ -1689,12 +1705,12 @@ def cluster_data():
     label_path1 = "data/cluster/cluster_label1.json"
     time_feature_path = "data/cluster/time_feature_merge.json"
     time_label_path = "data/cluster/time_cluster_label.json"
-    a = group_cluster_data(feature_path9, label_path9)
-    b = group_cluster_data(feature_path10, label_path10, 10)
-    c = group_cluster_data(feature_path11, label_path11)
-    d = group_cluster_data(feature_path12, label_path12)
-    e = group_cluster_data(feature_path1, label_path1)
-    f = group_cluster_data(time_feature_path, time_label_path, -1)
+    a = group_cluster_data(feature_path9, label_path9, classNum)
+    b = group_cluster_data(feature_path10, label_path10, classNum, 10)
+    c = group_cluster_data(feature_path11, label_path11, classNum)
+    d = group_cluster_data(feature_path12, label_path12, classNum)
+    e = group_cluster_data(feature_path1, label_path1, classNum)
+    f = group_cluster_data(time_feature_path, time_label_path, classNum, -1)
     merged_data = [a, b, c, d, e, f]
     return merged_data
 
@@ -1702,7 +1718,7 @@ def cluster_data():
 # 相关性系数列表
 @app.route("/correlationData")
 def correlation_data():
-    data_list = read_json('data/detail/corr.json')
+    data_list = read_json("data/detail/corr.json")
     # data_list = [
     #     [
     #         [0, 0, 0.139],
