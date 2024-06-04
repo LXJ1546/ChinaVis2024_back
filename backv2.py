@@ -1334,6 +1334,15 @@ def learnCalendarInfo():
         date_g = sort_g.groupby("date")
         for date in date_g:
             strDate = str(date[0]).replace("/", "-")
+            # 使用split()函数将字符串拆分为年、月、日
+            year, month, day = strDate.split("-")
+
+            # 使用zfill()函数将月份格式化为两位数
+            month = month.zfill(2)
+            day = day.zfill(2)
+
+            # 格式化后的字符串
+            strDate = f"{year}-{month}-{day}"
             re[g[0]][strDate] = []
             # 正确率
             result_status = date[1]["state"].value_counts(normalize=True)
@@ -1376,6 +1385,10 @@ def learnCalendarInfo():
 def personalSubmitInfo():
     student_id = request.json.get("data")  # 学生id列表
     learning_date = request.json.get("date")
+
+    parts = learning_date.split('-')
+    learning_date = '/'.join([part.lstrip('0') for part in parts])
+
     # 用时分布
     title_timeconsume_count = read_json(
         "./data/detail/title_timeconsume_count.json")
@@ -1386,7 +1399,7 @@ def personalSubmitInfo():
     df = pd.read_csv(file)
     info = df[
         (df["student_ID"] == student_id)
-        & (df["date"] == learning_date.replace("-", "/"))
+        & (df["date"] == learning_date)
     ]
     # print(info)
     title_g = info.groupby("title_ID")
