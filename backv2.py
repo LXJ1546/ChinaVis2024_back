@@ -1376,7 +1376,7 @@ def knowledgeMasterInfo():
 @app.route("/learnCalendarInfo", methods=["GET", "POST"])
 def learnCalendarInfo():
     ids = request.json.get("data")  # 学生id列表
-    month = request.json.get("month")
+    month1 = request.json.get("month")
     amode = request.json.get("amode")
     language = [
         "Method_Cj9Ya2R7fZd6xs1q5mNQ",
@@ -1389,23 +1389,25 @@ def learnCalendarInfo():
     file = "./data/detail/aaa.csv"
     df = pd.read_csv(file)
     students = df[df["student_ID"].isin(ids)]
-    students_m = students[students["month"] == month]
+    # 传入的月份
+    students_m = students[students["month"] == month1]
     re = {}
 
     # 演变模式，需要两个月的数据
     month2 = 0
     if (amode == 2):
-        if month == 12:
+        if month1 == 12:
             month2 = 1
         else:
-            month2 = month+1
+            month2 = month1+1
+        # 模式2下，第二个月的数据
         students_m2 = students[students["month"] == month2]
         stu_group = students_m.groupby("student_ID")
         stu_group2 = students_m2.groupby("student_ID")
 
         for g in stu_group:
             # g[0]当前学生id
-            re[g[0]+'-'+str(month)] = {}
+            re[g[0]+'-'+str(month1)] = {}
             re[g[0]+'-'+str(month2)] = {}
 
             # month
@@ -1422,7 +1424,7 @@ def learnCalendarInfo():
 
                 # 格式化后的字符串
                 strDate = f"{year}-{month}-{day}"
-                re[g[0]+'-'+str(month)][strDate] = []
+                re[g[0]+'-'+str(month1)][strDate] = []
                 # 正确率
                 result_status = date[1]["state"].value_counts(normalize=True)
                 correct_rate = 0
@@ -1432,10 +1434,10 @@ def learnCalendarInfo():
                 if "Partially_Correct" in result_status.index:
                     correct_rate = correct_rate + \
                         result_status["Partially_Correct"]
-                re[g[0]+'-'+str(month)][strDate].append(correct_rate)
+                re[g[0]+'-'+str(month1)][strDate].append(correct_rate)
                 # 答题数
                 title_num = len(date[1]["title_ID"].value_counts().index)
-                re[g[0]+'-'+str(month)][strDate].append(title_num)
+                re[g[0]+'-'+str(month1)][strDate].append(title_num)
                 # 语言
                 all_counts = len(date[1])  # 总提交次数
 
@@ -1447,10 +1449,11 @@ def learnCalendarInfo():
                         temp.append(all_language[lan] / all_counts)
                     else:
                         temp.append(0)
-                re[g[0]+'-'+str(month)][strDate].append(temp)
+                re[g[0]+'-'+str(month1)][strDate].append(temp)
 
                 # 提交次数
-                re[g[0]+'-'+str(month)][strDate].append(all_counts / title_num)
+                re[g[0]+'-'+str(month1)
+                   ][strDate].append(all_counts / title_num)
 
             # month2
             sort_g = stu_group2.get_group(g[0]).sort_values("date")
@@ -2040,7 +2043,8 @@ def get_mode_shift_data():
     # 计算每个每个模式的学生数量
     right_value_counter = Counter(right_dict.values())
     # 将 Counter 对象转换为字典，并按键排序
-    sorted_counts = dict(sorted(right_value_counter.items(), key=lambda x: x[0]))
+    sorted_counts = dict(
+        sorted(right_value_counter.items(), key=lambda x: x[0]))
     # print(sorted_counts)
     # 将 Counter 对象的值转换为列表
     right_values_list = list(sorted_counts.values())
