@@ -10,7 +10,7 @@ from sklearn.manifold import TSNE
 from sklearn.cluster import DBSCAN
 from collections import Counter
 
-student_info_df = pd.read_csv("data/Data_StudentInfo.csv")
+# student_info_df = pd.read_csv("data/Data_StudentInfo.csv")
 
 
 # 将字典保存为JSON文件
@@ -400,6 +400,28 @@ def calculate_accuracy():
     )
 
 
+# 给10月份的数据切换一下
+def ten_month_change():
+    # 根据月份读取数据
+    with open(f"data/cluster/student_tag_dict10(1).json", "r") as f:
+        ten_dict = json.load(f)
+    # 创建一个新的字典来保存修改后的结果
+    modified_data = {}
+    # 遍历原始字典
+    for key, value in ten_dict.items():
+        if value == 0:
+            modified_data[key] = 2
+        elif value == 2:
+            modified_data[key] = 0
+        else:
+            modified_data[key] = value  # 对于其他值不做修改
+    # 保存为JSON文件
+    save_to_json(
+        modified_data,
+        f"data/cluster/student_tag_dict10.json",
+    )
+
+
 # try_cluster()
 # elbow()
 # student_to_tag1(0)
@@ -418,4 +440,5 @@ def calculate_accuracy():
 # add_cluster_feature(4)
 # month_question_submit()
 # calculate_accuracy()
-time_feature_merge()
+# time_feature_merge()
+ten_month_change()
