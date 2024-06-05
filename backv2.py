@@ -1501,7 +1501,7 @@ def learnCalendarInfo():
     else:
         stu_group = students_m.groupby("student_ID")
         for g in stu_group:
-            re[g[0]+'-'+str(month)] = {}
+            re[g[0]] = {}
             sort_g = g[1].sort_values("date")
             date_g = sort_g.groupby("date")
             for date in date_g:
@@ -1515,7 +1515,7 @@ def learnCalendarInfo():
 
                 # 格式化后的字符串
                 strDate = f"{year}-{month}-{day}"
-                re[g[0]+'-'+str(month)][strDate] = []
+                re[g[0]][strDate] = []
                 # 正确率
                 result_status = date[1]["state"].value_counts(normalize=True)
                 correct_rate = 0
@@ -1525,10 +1525,10 @@ def learnCalendarInfo():
                 if "Partially_Correct" in result_status.index:
                     correct_rate = correct_rate + \
                         result_status["Partially_Correct"]
-                re[g[0]+'-'+str(month)][strDate].append(correct_rate)
+                re[g[0]][strDate].append(correct_rate)
                 # 答题数
                 title_num = len(date[1]["title_ID"].value_counts().index)
-                re[g[0]+'-'+str(month)][strDate].append(title_num)
+                re[g[0]][strDate].append(title_num)
                 # 语言
                 all_counts = len(date[1])  # 总提交次数
 
@@ -1540,10 +1540,10 @@ def learnCalendarInfo():
                         temp.append(all_language[lan] / all_counts)
                     else:
                         temp.append(0)
-                re[g[0]+'-'+str(month)][strDate].append(temp)
+                re[g[0]][strDate].append(temp)
 
                 # 提交次数
-                re[g[0]+'-'+str(month)][strDate].append(all_counts / title_num)
+                re[g[0]][strDate].append(all_counts / title_num)
 
         # print(sort_g)
     # print(re)
