@@ -2038,16 +2038,19 @@ def get_mode_shift_data():
     with open(f"data/cluster/student_tag_dict{month2}.json", "r") as f:
         right_dict = json.load(f)
     # 计算每个每个模式的学生数量
-    # left_value_counter = Counter(left_dict.values())
     right_value_counter = Counter(right_dict.values())
+    # 将 Counter 对象转换为字典，并按键排序
+    sorted_counts = dict(sorted(right_value_counter.items(), key=lambda x: x[0]))
+    # print(sorted_counts)
     # 将 Counter 对象的值转换为列表
-    # left_values_list = list(left_value_counter.values())
-    right_values_list = list(right_value_counter.values())
+    right_values_list = list(sorted_counts.values())
     transfer_matrix = [[0 for _ in range(4)] for _ in range(4)]
+    student_matrix = [[[] for _ in range(4)] for _ in range(4)]
     for student_id, tag in left_dict.items():
         if tag != right_dict[student_id]:
             transfer_matrix[tag][right_dict[student_id]] += 1
-    return [right_values_list, transfer_matrix]
+            student_matrix[tag][right_dict[student_id]].append(student_id)
+    return [right_values_list, transfer_matrix, student_matrix]
 
 
 @app.route("/monthQuestionSubmit", methods=["GET", "POST"])
