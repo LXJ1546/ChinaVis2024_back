@@ -7,6 +7,7 @@ import re
 import json
 import logging
 from collections import Counter
+from datetime import datetime
 
 
 app = Flask(__name__)
@@ -1614,7 +1615,9 @@ def personalSubmitInfo():
             # 方法
             re["Q_" + g[0][9:12]][-1].append(row["method"][0:8])
             # 提交时间
-            re["Q_" + g[0][9:12]][-1].append(row["time"])
+            converted_time = datetime.utcfromtimestamp(row["time"])
+            formatted_time = converted_time.strftime("%H:%M:%S")
+            re["Q_" + g[0][9:12]][-1].append(formatted_time)
 
     # print(re)
     return re
