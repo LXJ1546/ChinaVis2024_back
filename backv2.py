@@ -2099,6 +2099,28 @@ def get_month_question_submit():
     return [keys_array, values_array1, values_array2]
 
 
+@app.route("/studentsDetailKnowledgeInfo", methods=["GET", "POST"])
+def studentsDetailKnowledgeInfo():
+    # ids = request.args.get("data")
+    ids = request.json.get("data")  # 学生id列表
+    month_knowledge = 'data/knowledge/month_knowledge/student_master_knowledge_'
+    all_knowledge_info = pd.read_csv(
+        'data/knowledge/knowledge/student_master_knowledge_all.csv')
+    re_info = {}
+    print(ids)
+    for id in ids:
+        re_info[id] = []
+        for month in [9, 10, 11, 12, 1]:
+            month_info = pd.read_csv(month_knowledge+str(month)+'.csv')
+            value = month_info.loc[month_info['Unnamed: 0'] == id,
+                                   'all_knowledge'].values[0] if id in month_info['Unnamed: 0'].values else 0
+            re_info[id].append(value)
+        value = all_knowledge_info.loc[all_knowledge_info['Unnamed: 0'] == id,
+                                       'all_knowledge'].values[0] if id in all_knowledge_info['Unnamed: 0'].values else 0
+        re_info[id].append(value)
+    return (re_info)
+
+
 if __name__ == "__main__":
     app.run(debug=True)
     app.logger.setLevel(logging.DEBUG)
