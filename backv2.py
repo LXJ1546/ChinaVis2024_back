@@ -1819,6 +1819,57 @@ def onePeriodInfo():
     return result
 
 
+@app.route("/allPeriodDayInfo", methods=["GET", "POST"])
+def allPeriodDayInfo():
+    # 类型映射
+    period_to = {'Dawn': '凌晨', 'Morning': '上午',
+                 'Afternoon': '下午', 'Evening': '晚上'}
+    weekday_to = {1: '工作日', 0: '休息日'}
+    month_day = {9: {'start': '2023-09-01', 'end': '2023-09-30'}, 10: {'start': '2023-10-01', 'end': '2023-10-31'}, 11: {'start': '2023-11-01',
+                                                                                                                         'end': '2023-11-30'}, 12: {'start': '2023-12-01', 'end': '2023-12-31'}, 1: {'start': '2024-01-01', 'end': '2024-01-25'}}
+    # 创建工作日/休息日标识列
+    holidays = ['2023-09-29', '2023-10-01', '2023-10-02', '2023-10-03',
+                '2023-10-04', '2023-10-05', '2023-10-06', '2024-01-01']
+    info = pd.read_csv('data/detail/aaa.csv')
+
+    def is_weekday(date):
+        if (date.weekday() < 5 and str(date.date()) not in holidays):
+            return 1
+        else:
+            return 0
+
+    re_info = {}
+    g_period = info.groupby('time_period')
+    for period in g_period:
+        g_weekday = period[1].groupby('is_weekday')
+        for week in g_weekday:
+            key = period_to[period[0]]+'-'+weekday_to[week[0]]
+            re_info[key] = {}
+            g_month = week[1].groupby('month')
+            for month in g_month:
+                re_info[key][month[0]] = []
+                date_range = pd.date_range(
+                    start=month_day[month[0]]['start'], end=month_day[month[0]]['end'], freq='D')
+                month_info = month[1]
+                # print(date_range)
+                # 遍历这个月的每一天，
+                for date in date_range:
+                    # 判断是否工作日
+                    weekday = is_weekday(date)
+                    # 与当前循环项是否工作日匹配
+                    if (weekday == week[0]):
+                        # print(str(date.date()))
+                        parts = str(date.date()).split("-")
+                        learning_date = "/".join([part.lstrip("0")
+                                                  for part in parts])
+                        date_info = month_info[month_info['date']
+                                               == learning_date]
+                        unique_values_count = date_info['student_ID'].nunique()
+                        re_info[key][month[0]].append(unique_values_count)
+                        # print(unique_values_count)
+    # print(re_info)
+    return re_info
+
 # 时间模式下，右下3图，对学生分类后的分析
 
 
