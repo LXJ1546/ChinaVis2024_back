@@ -1846,28 +1846,39 @@ def allPeriodDayInfo():
             key = period_to[period[0]]+'-'+weekday_to[week[0]]
             re_info[key] = {}
             g_month = week[1].groupby('month')
-            for month in g_month:
-                re_info[key][month[0]] = []
+            for month in month_day.keys():
+                re_info[key][month] = []
                 date_range = pd.date_range(
-                    start=month_day[month[0]]['start'], end=month_day[month[0]]['end'], freq='D')
-                month_info = month[1]
-                # print(date_range)
-                # 遍历这个月的每一天，
-                for date in date_range:
-                    # 判断是否工作日
-                    weekday = is_weekday(date)
-                    # 与当前循环项是否工作日匹配
-                    if (weekday == week[0]):
-                        # print(str(date.date()))
-                        parts = str(date.date()).split("-")
-                        learning_date = "/".join([part.lstrip("0")
-                                                  for part in parts])
-                        date_info = month_info[month_info['date']
-                                               == learning_date]
-                        unique_values_count = date_info['student_ID'].nunique()
-                        re_info[key][month[0]].append(unique_values_count)
-                        # print(unique_values_count)
+                    start=month_day[month]['start'], end=month_day[month]['end'], freq='D')
+                if month in g_month.groups:
+                    month_info = g_month.get_group(month)
+                    # print(date_range)
+                    # 遍历这个月的每一天，
+                    for date in date_range:
+                        # 判断是否工作日
+                        weekday = is_weekday(date)
+                        # 与当前循环项是否工作日匹配
+                        if (weekday == week[0]):
+                            # print(str(date.date()))
+                            parts = str(date.date()).split("-")
+                            learning_date = "/".join([part.lstrip("0")
+                                                      for part in parts])
+                            date_info = month_info[month_info['date']
+                                                   == learning_date]
+                            unique_values_count = date_info['student_ID'].nunique(
+                            )
+                            re_info[key][month].append(unique_values_count)
+                            # print(unique_values_count)
+                else:
+                    for date in date_range:
+                        # 判断是否工作日
+                        weekday = is_weekday(date)
+                        # 与当前循环项是否工作日匹配
+                        if (weekday == week[0]):
+                            re_info[key][month].append(0)
+
     # print(re_info)
+    # re_info['晚上-工作日']["1"] = [0]
     return re_info
 
 # 时间模式下，右下3图，对学生分类后的分析
