@@ -1362,13 +1362,13 @@ def personalTitleMasterInfo():
     num_list = list(titleTo.values())
     num_list.insert(0, "Unnamed: 0")
 
-    master = pd.read_csv(master_file)
+    master = pd.read_csv(master_file).fillna(0)
     master_info = master[master["Unnamed: 0"] == id].reindex(columns=num_list)
     # print(master_info.iloc[:, 1:].values[0])
-    score = pd.read_csv(score_file)
+    score = pd.read_csv(score_file).fillna(0)
     score_info = score[score["Unnamed: 0"] == id].reindex(columns=num_list)
 
-    correct = pd.read_csv(correct_file)
+    correct = pd.read_csv(correct_file).fillna(0)
     correct_info = correct[correct["Unnamed: 0"]
                            == id].reindex(columns=num_list)
 
@@ -1556,13 +1556,14 @@ def personalKnowledgeMasterInfo():
         title = pd.read_csv(store_file3 + "all" + ".csv")
         df_title = pd.concat([df_title, title], ignore_index=True)
 
-    knowledge_mean = df_knowledge[df_knowledge["Unnamed: 0"] == id].squeeze()
+    knowledge_mean = df_knowledge[df_knowledge["Unnamed: 0"] == id].fillna(
+        0).squeeze()
     # print(knowledge_mean, type(knowledge_mean))
 
-    sub_knowledge_mean = df_sub_knowledge[df_sub_knowledge["Unnamed: 0"] == id].squeeze(
+    sub_knowledge_mean = df_sub_knowledge[df_sub_knowledge["Unnamed: 0"] == id].fillna(0).squeeze(
     )
 
-    title_mean = df_title[df_title["Unnamed: 0"] == id].squeeze()
+    title_mean = df_title[df_title["Unnamed: 0"] == id].fillna(0).squeeze()
 
     # knowledge_max = knowledge_mean.max()
     # knowledge_min = knowledge_mean.min()
