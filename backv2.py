@@ -1246,6 +1246,160 @@ def titleTimeMemoryInfo():
     return re
 
 
+@app.route("/personalTitleTimeMemoryInfo", methods=["GET", "POST"])
+def personalTitleTimeMemoryInfo():
+    id = request.json.get("data")  # post 这里应该获取到两个信息，个人id
+    # print(data)  # prin
+    data = request.json.get("name")  # post 这里应该获取到两个信息，题目
+
+    titleTo = {
+        "Q_bum": "Question_bumGRTJ0c8p4v5D6eHZa",
+        "Q_62X": "Question_62XbhBvJ8NUSnApgDL94",
+        "Q_ZTb": "Question_ZTbD7mxr2OUp8Fz6iNjy",
+        "Q_FNg": "Question_FNg8X9v5zcbB1tQrxHR3",
+        "Q_hZ5": "Question_hZ5wXofebmTlzKB1jNcP",
+        "Q_xql": "Question_xqlJkmRaP0otZcX4fK3W",
+        "Q_YWX": "Question_YWXHr4G6Cl7bEm9iF2kQ",
+        "Q_X3w": "Question_X3wF8QlTyi4mZkDp9Kae",
+        "Q_5fg": "Question_5fgqjSBwTPG7KUV3it6O",
+        "Q_oCj": "Question_oCjnFLbIs4Uxwek9rBpu",
+        "Q_EhV": "Question_EhVPdmlB31M8WKGqL0wc",
+        "Q_Az7": "Question_Az73sM0rHfWVKuc4X2kL",
+        "Q_Ou3": "Question_Ou3f2Wt9BqExm5DpN7Zk",
+        "Q_UXq": "Question_UXqN1F7G3Sbldz02vZne",
+        "Q_x2F": "Question_x2Fy7rZ3SwYl9jMQkpOD",
+        "Q_Mh4": "Question_Mh4CZIsrEfxkP1wXtOYV",
+        "Q_lU2": "Question_lU2wvHSZq7m43xiVroBc",
+        "Q_Ej5": "Question_Ej5mBw9rsOUKkFycGvz2",
+        "Q_pVK": "Question_pVKXjZn0BkSwYcsa7C31",
+        "Q_QRm": "Question_QRm48lXxzdP7Tn1WgNOf",
+        "Q_Jr4": "Question_Jr4Wz5jLqmN01KUwHa7g",
+        "Q_7NJ": "Question_7NJzCXUPcvQF4Mkfh9Wr",
+        "Q_n2B": "Question_n2BTxIGw1Mc3Zo6RLdUe",
+        "Q_Nix": "Question_NixCn84GdK2tySa5rB1V",
+        "Q_TmK": "Question_TmKaGvfNoXYq4FZ2JrBu",
+        "Q_s6V": "Question_s6VmP1G4UbEQWRYHK9Fd",
+        "Q_tgO": "Question_tgOjrpZLw4RdVzQx85h6",
+        "Q_4nH": "Question_4nHcauCQ0Y6Pm8DgKlLo",
+        "Q_6RQ": "Question_6RQj2gF3OeK5AmDvThUV",
+        "Q_h7p": "Question_h7pXNg80nJbw1C4kAPRm",
+        "Q_x2L": "Question_x2L7AqbMuTjCwPFy6vNr",
+        "Q_3Mw": "Question_3MwAFlmNO8EKrpY5zjUd",
+        "Q_3oP": "Question_3oPyUzDmQtcMfLpGZ0jW",
+        "Q_rvB": "Question_rvB9mVE6Kbd8jAY4NwPx",
+        "Q_BW0": "Question_BW0ItEaymH3TkD6S15JF",
+        "Q_fZr": "Question_fZrP3FJ4ebUogW9V7taS",
+        "Q_q7O": "Question_q7OpB2zCMmW9wS8uNt3H",
+        "Q_VgK": "Question_VgKw8PjY1FR6cm2QI9XW",
+    }
+
+    title = titleTo[data]
+    re1 = {"time": 0, "memory": 0}
+    info = pd.read_csv('data/detail/aaa.csv')
+    stu_info = info[(info["student_ID"] == id) & (info["title_ID"] == title)]
+    # print(stu_info)
+    # 判断是否存在列 'a' 取值为 'x' 的行
+    exists_a_x = (stu_info['state'] == 'Absolutely_Correct').any()
+    if exists_a_x:
+        # 获取所有 'a' 列取值为 'x' 的行
+        filtered_df = stu_info[stu_info['state'] == 'Absolutely_Correct']
+        re1["time"] = int(filtered_df['timeconsume'].min())
+        re1["memory"] = int(filtered_df['memory'].min())
+
+    return re1
+
+
+@app.route("/personalTitleMasterInfo", methods=["GET", "POST"])
+def personalTitleMasterInfo():
+    id = request.json.get("data")  # post
+    titleTo = {
+        "Q_bum": "Question_bumGRTJ0c8p4v5D6eHZa",
+        "Q_62X": "Question_62XbhBvJ8NUSnApgDL94",
+        "Q_ZTb": "Question_ZTbD7mxr2OUp8Fz6iNjy",
+        "Q_FNg": "Question_FNg8X9v5zcbB1tQrxHR3",
+        "Q_hZ5": "Question_hZ5wXofebmTlzKB1jNcP",
+        "Q_xql": "Question_xqlJkmRaP0otZcX4fK3W",
+        "Q_YWX": "Question_YWXHr4G6Cl7bEm9iF2kQ",
+        "Q_X3w": "Question_X3wF8QlTyi4mZkDp9Kae",
+        "Q_5fg": "Question_5fgqjSBwTPG7KUV3it6O",
+        "Q_oCj": "Question_oCjnFLbIs4Uxwek9rBpu",
+        "Q_EhV": "Question_EhVPdmlB31M8WKGqL0wc",
+        "Q_Az7": "Question_Az73sM0rHfWVKuc4X2kL",
+        "Q_Ou3": "Question_Ou3f2Wt9BqExm5DpN7Zk",
+        "Q_UXq": "Question_UXqN1F7G3Sbldz02vZne",
+        "Q_x2F": "Question_x2Fy7rZ3SwYl9jMQkpOD",
+        "Q_Mh4": "Question_Mh4CZIsrEfxkP1wXtOYV",
+        "Q_lU2": "Question_lU2wvHSZq7m43xiVroBc",
+        "Q_Ej5": "Question_Ej5mBw9rsOUKkFycGvz2",
+        "Q_pVK": "Question_pVKXjZn0BkSwYcsa7C31",
+        "Q_QRm": "Question_QRm48lXxzdP7Tn1WgNOf",
+        "Q_Jr4": "Question_Jr4Wz5jLqmN01KUwHa7g",
+        "Q_7NJ": "Question_7NJzCXUPcvQF4Mkfh9Wr",
+        "Q_n2B": "Question_n2BTxIGw1Mc3Zo6RLdUe",
+        "Q_Nix": "Question_NixCn84GdK2tySa5rB1V",
+        "Q_TmK": "Question_TmKaGvfNoXYq4FZ2JrBu",
+        "Q_s6V": "Question_s6VmP1G4UbEQWRYHK9Fd",
+        "Q_tgO": "Question_tgOjrpZLw4RdVzQx85h6",
+        "Q_4nH": "Question_4nHcauCQ0Y6Pm8DgKlLo",
+        "Q_6RQ": "Question_6RQj2gF3OeK5AmDvThUV",
+        "Q_h7p": "Question_h7pXNg80nJbw1C4kAPRm",
+        "Q_x2L": "Question_x2L7AqbMuTjCwPFy6vNr",
+        "Q_3Mw": "Question_3MwAFlmNO8EKrpY5zjUd",
+        "Q_3oP": "Question_3oPyUzDmQtcMfLpGZ0jW",
+        "Q_rvB": "Question_rvB9mVE6Kbd8jAY4NwPx",
+        "Q_BW0": "Question_BW0ItEaymH3TkD6S15JF",
+        "Q_fZr": "Question_fZrP3FJ4ebUogW9V7taS",
+        "Q_q7O": "Question_q7OpB2zCMmW9wS8uNt3H",
+        "Q_VgK": "Question_VgKw8PjY1FR6cm2QI9XW",
+    }
+
+    master_file = "./data/classes/title_master/student_master_title_all.csv"
+    score_file = (
+        "./data/classes/title_score_rate/student_master_title_all.csv"
+    )
+    correct_file = "./data/classes/correct_rate/correct_rate_class_all.csv"
+
+    num_list = list(titleTo.values())
+    num_list.insert(0, "Unnamed: 0")
+
+    master = pd.read_csv(master_file)
+    master_info = master[master["Unnamed: 0"] == id].reindex(columns=num_list)
+    # print(master_info.iloc[:, 1:].values[0])
+    score = pd.read_csv(score_file)
+    score_info = score[score["Unnamed: 0"] == id].reindex(columns=num_list)
+
+    correct = pd.read_csv(correct_file)
+    correct_info = correct[correct["Unnamed: 0"]
+                           == id].reindex(columns=num_list)
+
+    re = []
+    re.append(
+        {
+            "name": "掌握程度",
+            "data": list(master_info.iloc[:, 1:].values[0]),
+            "type": "line",
+            "smooth": "true",
+        }
+    )
+    re.append(
+        {
+            "name": "得分率",
+            "data": list(score_info.iloc[:, 1:].values[0]),
+            "type": "line",
+            "smooth": "true",
+        }
+    )
+    re.append(
+        {
+            "name": "正确占比",
+            "data": list(correct_info.iloc[:, 1:].values[0]),
+            "type": "line",
+            "smooth": "true",
+        }
+    )
+    print(re)
+    return re
+
 # 知识点
 
 
@@ -1297,6 +1451,7 @@ def knowledgeMasterInfo():
         df_title = pd.concat([df_title, title], ignore_index=True)
 
     knowledge_mean = df_knowledge.mean(numeric_only=True).round(4)
+    # print(knowledge_mean, type(knowledge_mean))
 
     sub_knowledge_mean = df_sub_knowledge.mean(numeric_only=True).round(4)
 
@@ -1368,6 +1523,107 @@ def knowledgeMasterInfo():
             "title_max": title_max,
             "title_min": title_min,
         },
+    }
+
+
+@app.route("/personalKnowledgeMasterInfo", methods=["GET", "POST"])
+def personalKnowledgeMasterInfo():
+    id = request.json.get("data")  # 个人id
+    title_value = request.json.get("title")  # score
+
+    df_knowledge = pd.DataFrame()
+    df_sub_knowledge = pd.DataFrame()
+    df_title = pd.DataFrame()
+
+    store_file1 = "./data/knowledge/knowledge/student_master_knowledge_"
+    store_file2 = "./data/knowledge/sub_knowledge/student_master_sub_knowledge_"
+    store_file3 = "data/classes/title_master/student_master_title_"
+
+    store_title_score = "./data/classes/correct_rate/correct_rate_class_"
+
+    knowledge = pd.read_csv(store_file1 + "all" + ".csv")
+    df_knowledge = pd.concat([df_knowledge, knowledge], ignore_index=True)
+
+    sub_knowledge = pd.read_csv(store_file2 + "all" + ".csv")
+    df_sub_knowledge = pd.concat(
+        [df_sub_knowledge, sub_knowledge], ignore_index=True)
+
+    # 题目得分率
+    if title_value == "score":
+        title = pd.read_csv(store_title_score + "all" + ".csv")
+        df_title = pd.concat([df_title, title], ignore_index=True)
+    else:
+        title = pd.read_csv(store_file3 + "all" + ".csv")
+        df_title = pd.concat([df_title, title], ignore_index=True)
+
+    knowledge_mean = df_knowledge[df_knowledge["Unnamed: 0"] == id].squeeze()
+    # print(knowledge_mean, type(knowledge_mean))
+
+    sub_knowledge_mean = df_sub_knowledge[df_sub_knowledge["Unnamed: 0"] == id].squeeze(
+    )
+
+    title_mean = df_title[df_title["Unnamed: 0"] == id].squeeze()
+
+    # knowledge_max = knowledge_mean.max()
+    # knowledge_min = knowledge_mean.min()
+    # title_max = title_mean.max()
+    # title_min = title_mean.min()
+
+    icon = {
+        "Question_q7OpB2zCMmW9wS8uNt3H": 0,
+        "Question_QRm48lXxzdP7Tn1WgNOf": 1,
+        "Question_pVKXjZn0BkSwYcsa7C31": 2,
+        "Question_lU2wvHSZq7m43xiVroBc": 3,
+        "Question_x2Fy7rZ3SwYl9jMQkpOD": 4,
+        "Question_oCjnFLbIs4Uxwek9rBpu": 5,
+    }
+
+    file = "./data/knowledge/Data_TitleInfo.csv"
+    title = pd.read_csv(file)
+    re = []
+    knowledge_group = title.groupby("knowledge")
+    for knowledge in knowledge_group:
+        # print(knowledge[0])
+        re.append(
+            {
+                "name": knowledge[0],
+                "score": knowledge_mean[knowledge[0]],
+                "children": [],
+            }
+        )
+        sub_knowledge_group = knowledge[1].groupby("sub_knowledge")
+        for sub_knowledge in sub_knowledge_group:
+            # re[-1]表示该列表最后一个元素
+            re[-1]["children"].append(
+                {
+                    "name": sub_knowledge[0],
+                    "score": sub_knowledge_mean[sub_knowledge[0]],
+                    "children": [],
+                }
+            )
+            for index, row in sub_knowledge[1].iterrows():
+                # print(row)
+                if row["title_ID"] in icon.keys():
+                    re[-1]["children"][-1]["children"].append(
+                        {
+                            "name": row["title_ID"],
+                            "score": title_mean[row["title_ID"]],
+                            "value": row["score"],
+                            "icon": icon[row["title_ID"]],
+                        }
+                    )
+                else:
+                    re[-1]["children"][-1]["children"].append(
+                        {
+                            "name": row["title_ID"],
+                            "score": title_mean[row["title_ID"]],
+                            "value": row["score"],
+                        }
+                    )
+    # print(re)
+    reInfo = {"name": "Q1", "children": re}
+    return {
+        "info": reInfo,
     }
 
 
