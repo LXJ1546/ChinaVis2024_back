@@ -2153,7 +2153,7 @@ def timeStudentInfo():
     for key, value in data.items():
         result[key] = []
         for stu in ["top", "mid", "low"]:
-            result[key].append(value[stu][feature_label])
+            result[key].append(round(value[stu][feature_label], 4))
 
     result2 = {
         "top": [result["高峰型"][0], result["平均型"][0], result["低峰型"][0]],
